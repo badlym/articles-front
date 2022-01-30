@@ -10,7 +10,7 @@
 * [其他](doc/other.md)
 
 ### 在线阅读
-* [Github 访问地址](https://badlym.github.io/front-articles/)
+* [Github 访问地址](https://badlym.github.io/articles-front/)
 
 如果在线访问比较慢，建议你克隆项目在本地观看，下载项目后执行以下命令：
 ```bash
