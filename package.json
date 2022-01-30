@@ -1,0 +1,20 @@
+{
+  "name": "front-articles",
+  "version": "1.0.0",
+  "description": "前端技术分享.",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vuepress dev doc",
+    "build": "vuepress build doc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com.cnpmjs.org/badlym/front-articles.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "vuepress": "^1.9.7"
+  }
+}
