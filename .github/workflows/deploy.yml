@@ -10,8 +10,8 @@ jobs:
         uses: jenkey2011/vuepress-deploy@master
         env:
           ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-          TARGET_REPO: badlym/front-articles
+          TARGET_REPO: badlym/articles-front
           TARGET_BRANCH: master
           BUILD_SCRIPT: yarn && yarn build
           BUILD_DIR: doc/.vuepress/dist
-          CNAME: https://www.xxx.com
+
