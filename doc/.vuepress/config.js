@@ -1,5 +1,5 @@
 module.exports = {
-    base: '/front-articles/',
+    base: '/articles-front/',
     title: '前端规范',
     head: [
         ['meta', { name: 'referrer', content: 'no-referrer' }],
