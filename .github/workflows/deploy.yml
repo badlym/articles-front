@@ -11,7 +11,7 @@ jobs:
         env:
           ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
           TARGET_REPO: badlym/articles-front
-          TARGET_BRANCH: gh-pages
+          TARGET_BRANCH: gh_pages
           BUILD_SCRIPT: yarn && yarn build
           BUILD_DIR: doc/.vuepress/dist
 
