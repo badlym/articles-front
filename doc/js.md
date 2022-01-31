@@ -1,3150 +1,1796 @@
-# JavaScript 编码规范
+# JavaScript
 
-  1. [类型](#类型)
-  1. [赋值](#赋值)
-  1. [对象](#对象)
-  1. [数组](#数组)
-  1. [解构赋值](#解构赋值)
-  1. [字符串](#字符串)
-  1. [函数](#函数)
-  1. [箭头函数](#箭头函数)
-  1. [类和构造函数](#类和构造函数)
-  1. [模块](#模块)
-  1. [迭代器和生成器](#迭代器和生成器)
-  1. [属性](#属性)
-  1. [变量](#变量)
-  1. [提升](#提升)
-  1. [比较运算符](#比较运算符)
-  1. [语句块](#语句块)
-  1. [控制语句](#控制语句)
-  1. [注释](#注释)
-  1. [空格](#空格)
-  1. [逗号](#逗号)
-  1. [分号](#分号)
-  1. [类型转换](#类型转换)
-  1. [命名规则](#命名规则)
-  1. [访问器](#访问器)
-  1. [事件](#事件)
-  1. [测试](#测试)
-
-## 类型
-
-  <a name="1.1"></a>
-  <a name="types--primitives"></a>
-  - [1.1](#types--primitives) 基本类型: 你可以直接获取到基本类型的值
-    + `string`
-    + `number`
-    + `boolean`
-    + `null`
-    + `undefined`
-    + `symbol`
-
-    ```javascript
-    const foo = 1;
-    let bar = foo;
-
-    bar = 9;
-
-    console.log(foo, bar); // => 1, 9
-    ```
-    + Symbols 不能被正确的polyfill。 所以在不能原生支持symbol类型的环境[浏览器]中，不应该使用 symbol 类型。
-
-  <a name="1.2"></a>
-  <a name="types--complex"></a>
-  - [1.2](#types--complex)  复杂类型: 复杂类型赋值是获取到他的引用的值。 相当于传引用
-    + `object`
-    + `array`
-    + `function`
-
-    ```javascript
-    const foo = [1, 2];
-    const bar = foo;
-
-    bar[0] = 9;
-
-    console.log(foo[0], bar[0]); // => 9, 9
-    ```
-
-**[回到顶部](#javascript-编码规范)**
-
-## 赋值
-
-  <a name="2.1"></a>
-  <a name="references--prefer-const"></a>
-  - [2.1](#references--prefer-const) 所有的赋值都用`const`，避免使用`var`. eslint: [`prefer-const`](http://eslint.org/docs/rules/prefer-const.html), [`no-const-assign`](http://eslint.org/docs/rules/no-const-assign.html)
-
-    > Why? 因为这个确保你不会改变你的初始值，重复引用会导致bug和代码难以理解
-
-    ```javascript
-    // bad
-    var a = 1;
-    var b = 2;
-
-    // good
-    const a = 1;
-    const b = 2;
-    ```
-
-  <a name="2.2"></a>
-  <a name="references--disallow-var"></a>
-  - [2.2](#references--disallow-var) 如果你一定要对参数重新赋值，那就用`let`，而不是`var`. eslint: [`no-var`](http://eslint.org/docs/rules/no-var.html)
-
-    > Why? 因为`let`是块级作用域，而`var`是函数级作用域
-
-    ```javascript
-    // bad
-    var count = 1;
-    if (true) {
-      count += 1;
-    }
-
-    // good, use the let.
-    let count = 1;
-    if (true) {
-      count += 1;
-    }
-    ```
-
-  <a name="2.3"></a>
-  <a name="references--block-scope"></a>
-  - [2.3](#references--block-scope) 注意： `let`、`const`都是块级作用域
-
-    ```javascript
-    // const 和 let 都只存在于它定义的那个块级作用域
-    {
-      let a = 1;
-      const b = 1;
-    }
-    console.log(a); // ReferenceError
-    console.log(b); // ReferenceError
-    ```
-
-**[回到顶部](#javascript-编码规范)**
-
-## 对象
-
-  <a name="3.1"></a>
-  <a name="objects--no-new"></a>
-  - [3.1](#objects--no-new) 使用字面值创建对象. eslint: [`no-new-object`](http://eslint.org/docs/rules/no-new-object.html)
-
-    ```javascript
-    // bad
-    const item = new Object();
-
-    // good
-    const item = {};
-    ```
-
-  <a name="3.2"></a>
-  <a name="es6-computed-properties"></a>
-  - [3.2](#es6-computed-properties) 当创建一个带有动态属性名的对象时，用计算后属性名
-
-    > Why? 这可以使你将定义的所有属性放在对象的一个地方.
-
-    ```javascript
-
-    function getKey(k) {
-      return `a key named ${k}`;
-    }
-
-    // bad
-    const obj = {
-      id: 5,
-      name: 'San Francisco',
-    };
-    obj[getKey('enabled')] = true;
-
-    // good getKey('enabled')是动态属性名
-    const obj = {
-      id: 5,
-      name: 'San Francisco',
-      [getKey('enabled')]: true,
-    };
-    ```
-
-  <a name="3.3"></a>
-  <a name="es6-object-shorthand"></a>
-  - [3.3](#es6-object-shorthand) 用对象方法简写. eslint: [`object-shorthand`](http://eslint.org/docs/rules/object-shorthand.html)
-
-    ```javascript
-    // bad
-    const atom = {
-      value: 1,
-
-      addValue: function (value) {
-        return atom.value + value;
-      },
-    };
-
-    // good
-    const atom = {
-      value: 1,
-
-      // 对象的方法
-      addValue(value) {
-        return atom.value + value;
-      },
-    };
-    ```
-
-  <a name="3.4"></a>
-  <a name="es6-object-concise"></a>
-  - [3.4](#es6-object-concise) 用属性值缩写. eslint: [`object-shorthand`](http://eslint.org/docs/rules/object-shorthand.html)
-
-    > Why? 这样写的更少且更可读
-
-    ```javascript
-    const lukeSkywalker = 'Luke Skywalker';
-
-    // bad
-    const obj = {
-      lukeSkywalker: lukeSkywalker,
-    };
-
-    // good
-    const obj = {
-      lukeSkywalker,
-    };
-    ```
-
-  <a name="3.5"></a>
-  <a name="objects--grouped-shorthand"></a>
-  - [3.5](#objects--grouped-shorthand) 将你的所有缩写放在对象声明的开始.
-
-    > Why? 这样也是为了更方便的知道有哪些属性用了缩写.
-
-    ```javascript
-    const anakinSkywalker = 'Anakin Skywalker';
-    const lukeSkywalker = 'Luke Skywalker';
-
-    // bad
-    const obj = {
-      episodeOne: 1,
-      twoJediWalkIntoACantina: 2,
-      lukeSkywalker,
-      episodeThree: 3,
-      mayTheFourth: 4,
-      anakinSkywalker,
-    };
-
-    // good
-    const obj = {
-      lukeSkywalker,
-      anakinSkywalker,
-      episodeOne: 1,
-      twoJediWalkIntoACantina: 2,
-      episodeThree: 3,
-      mayTheFourth: 4,
-    };
-    ```
-
-  <a name="3.6"></a>
-  <a name="objects--quoted-props"></a>
-  - [3.6](#objects--quoted-props) 只对那些无效的标示使用引号 `''`. eslint: [`quote-props`](http://eslint.org/docs/rules/quote-props.html)
-
-    > Why? 通常我们认为这种方式主观上易读。他优化了代码高亮，并且页更容易被许多JS引擎压缩。
-
-    ```javascript
-    // bad
-    const bad = {
-      'foo': 3,
-      'bar': 4,
-      'data-blah': 5,
-    };
-
-    // good
-    const good = {
-      foo: 3,
-      bar: 4,
-      'data-blah': 5,
-    };
-    ```
-
-  <a name="3.7"></a>
-  <a name="objects--prototype-builtins"></a>
-  - [3.7](#objects--prototype-builtins) 不要直接调用`Object.prototype`上的方法，如`hasOwnProperty`, `propertyIsEnumerable`, `isPrototypeOf`。
-
-    > Why? 在一些有问题的对象上， 这些方法可能会被屏蔽掉 - 如：`{ hasOwnProperty: false }` - 或这是一个空对象`Object.create(null)`
-
-    ```javascript
-    // bad
-    console.log(object.hasOwnProperty(key));
-
-    // good
-    console.log(Object.prototype.hasOwnProperty.call(object, key));
-
-    // best
-    const has = Object.prototype.hasOwnProperty; // 在模块作用内做一次缓存
-    /* or */
-    import has from 'has'; // https://www.npmjs.com/package/has
-    // ...
-    console.log(has.call(object, key));
-    ```
-
-  <a name="3.8"></a>
-  <a name="objects--rest-spread"></a>
-  - [3.8](#objects--rest-spread) 对象浅拷贝时，更推荐使用扩展运算符[就是`...`运算符]，而不是[`Object.assign`](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Object/assign)。获取对象指定的几个属性时，用对象的rest解构运算符[也是`...`运算符]更好。
-    + 这一段不太好翻译出来， 大家看下面的例子就懂了。^.^
-
-  ```javascript
-  // very bad
-  const original = { a: 1, b: 2 };
-  const copy = Object.assign(original, { c: 3 }); // this mutates `original` ಠ_ಠ
-  delete copy.a; // so does this
-
-  // bad
-  const original = { a: 1, b: 2 };
-  const copy = Object.assign({}, original, { c: 3 }); // copy => { a: 1, b: 2, c: 3 }
-
-  // good es6扩展运算符 ...
-  const original = { a: 1, b: 2 };
-  // 浅拷贝
-  const copy = { ...original, c: 3 }; // copy => { a: 1, b: 2, c: 3 }
-
-  // rest 赋值运算符
-  const { a, ...noA } = copy; // noA => { b: 2, c: 3 }
-  ```
-
-**[回到顶部](#javascript-编码规范)**
-
-## 数组
-
-  <a name="4.1"></a>
-  <a name="arrays--literals"></a>
-  - [4.1](#arrays--literals) 用字面量赋值。 eslint: [`no-array-constructor`](http://eslint.org/docs/rules/no-array-constructor.html)
-
-    ```javascript
-    // bad
-    const items = new Array();
-
-    // good
-    const items = [];
-    ```
-
-  <a name="4.2"></a>
-  <a name="arrays--push"></a>
-  - [4.2](#arrays--push) 用[Array#push](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Array/push) 代替直接向数组中添加一个值。
-
-    ```javascript
-    const someStack = [];
-
-    // bad
-    someStack[someStack.length] = 'abracadabra';
-
-    // good
-    someStack.push('abracadabra');
-    ```
-
-  <a name="4.3"></a>
-  <a name="es6-array-spreads"></a>
-  - [4.3](#es6-array-spreads) 用扩展运算符做数组浅拷贝，类似上面的对象浅拷贝
-
-    ```javascript
-    // bad
-    const len = items.length;
-    const itemsCopy = [];
-    let i;
-
-    for (i = 0; i < len; i += 1) {
-      itemsCopy[i] = items[i];
-    }
-
-    // good
-    const itemsCopy = [...items];
-    ```
-
-  <a name="4.4"></a>
-  <a name="arrays--from-iterable"></a>
-  - [4.4](#arrays--from-iterable) 用 `...` 运算符而不是[`Array.from`](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Array/from)来将一个可迭代的对象转换成数组。
-
-    ```javascript
-    const foo = document.querySelectorAll('.foo');
-
-    // good
-    const nodes = Array.from(foo);
-
-    // best
-    const nodes = [...foo];
-    ```
-
-  <a name="4.5"></a>
-  <a name="arrays--from-array-like"></a>
-  - [4.5](#arrays--from-array-like) 用 [`Array.from`](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Array/from) 去将一个类数组对象转成一个数组。
-
-    ```javascript
-    const arrLike = { 0: 'foo', 1: 'bar', 2: 'baz', length: 3 };
-
-    // bad
-    const arr = Array.prototype.slice.call(arrLike);
-
-    // good
-    const arr = Array.from(arrLike);
-    ```
-
-  <a name="4.6"></a>
-  <a name="arrays--mapping"></a>
-  - [4.6](#arrays--mapping) 用 [`Array.from`](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Array/from) 而不是 `...` 运算符去做map遍历。 因为这样可以避免创建一个临时数组。
-
-    ```javascript
-    // bad
-    const baz = [...foo].map(bar);
-
-    // good
-    const baz = Array.from(foo, bar);
-    ```
-
-  <a name="4.7"></a>
-  <a name="arrays--callback-return"></a>
-  - [4.7](#arrays--callback-return) 在数组方法的回调函数中使用 return 语句。 如果函数体由一条返回一个表达式的语句组成， 并且这个表达式没有副作用， 这个时候可以忽略return，详见 [8.2](#arrows--implicit-return). eslint: [`array-callback-return`](http://eslint.org/docs/rules/array-callback-return)
-
-    ```javascript
-    // good
-    [1, 2, 3].map((x) => {
-      const y = x + 1;
-      return x * y;
-    });
-
-    // good 函数只有一个语句
-    [1, 2, 3].map(x => x + 1);
-
-    // bad - 没有返回值， 因为在第一次迭代后acc 就变成undefined了
-    [[0, 1], [2, 3], [4, 5]].reduce((acc, item, index) => {
-      const flatten = acc.concat(item);
-      acc[index] = flatten;
-    });
-
-    // good
-    [[0, 1], [2, 3], [4, 5]].reduce((acc, item, index) => {
-      const flatten = acc.concat(item);
-      acc[index] = flatten;
-      return flatten;
-    });
-
-    // bad
-    inbox.filter((msg) => {
-      const { subject, author } = msg;
-      if (subject === 'Mockingbird') {
-        return author === 'Harper Lee';
-      } else {
-        return false;
-      }
-    });
-
-    // good
-    inbox.filter((msg) => {
-      const { subject, author } = msg;
-      if (subject === 'Mockingbird') {
-        return author === 'Harper Lee';
-      }
-
-      return false;
-    });
-    ```
-
-  <a name="4.8"></a>
-  <a name="arrays--bracket-newline"></a>
-  - [4.8](#arrays--bracket-newline) 如果一个数组有很多行，在数组的 `[` 后和 `]` 前断行。 请看下面示例
-
-    ```javascript
-    // bad
-    const arr = [
-      [0, 1], [2, 3], [4, 5],
-    ];
-
-    const objectInArray = [{
-      id: 1,
-    }, {
-      id: 2,
-    }];
-
-    const numberInArray = [
-      1, 2,
-    ];
-
-    // good
-    const arr = [[0, 1], [2, 3], [4, 5]];
-
-    const objectInArray = [
-      {
-        id: 1,
-      },
-      {
-        id: 2,
-      },
-    ];
-
-    const numberInArray = [
-      1,
-      2,
-    ];
-    ```
-
-**[回到顶部](#javascript-编码规范)**
-
-## 解构赋值
-
-  <a name="5.1"></a>
-  <a name="destructuring--object"></a>
-  - [5.1](#destructuring--object) 用对象的解构赋值来获取和使用对象某个或多个属性值。 eslint: [`prefer-destructuring`](https://eslint.org/docs/rules/prefer-destructuring)
-
-    > Why? 解构保存了这些属性的临时值/引用
-
-    ```javascript
-    // bad
-    function getFullName(user) {
-      const firstName = user.firstName;
-      const lastName = user.lastName;
-
-      return `${firstName} ${lastName}`;
-    }
-
-    // good
-    function getFullName(user) {
-      const { firstName, lastName } = user;
-      return `${firstName} ${lastName}`;
-    }
-
-    // best
-    function getFullName({ firstName, lastName }) {
-      return `${firstName} ${lastName}`;
-    }
-    ```
-
-  <a name="5.2"></a>
-  <a name="destructuring--array"></a>
-  - [5.2](#destructuring--array) 用数组解构.
-
-    ```javascript
-    const arr = [1, 2, 3, 4];
-
-    // bad
-    const first = arr[0];
-    const second = arr[1];
-
-    // good
-    const [first, second] = arr;
-    ```
-
-  <a name="5.3"></a>
-  <a name="destructuring--object-over-array"></a>
-  - [5.3](#destructuring--object-over-array) 多个返回值用对象的解构，而不是数据解构。
-
-    > Why? 你可以在后期添加新的属性或者变换变量的顺序而不会打破原有的调用
-
-    ```javascript
-    // bad
-    function processInput(input) {
-      // 然后就是见证奇迹的时刻
-      return [left, right, top, bottom];
-    }
-
-    // 调用者需要想一想返回值的顺序
-    const [left, __, top] = processInput(input);
-
-    // good
-    function processInput(input) {
-      // oops， 奇迹又发生了
-      return { left, right, top, bottom };
-    }
-
-    // 调用者只需要选择他想用的值就好了
-    const { left, top } = processInput(input);
-    ```
-
-
-**[回到顶部](#javascript-编码规范)**
-
-## 字符串
-
-  <a name="6.1"></a>
-  <a name="strings--quotes"></a>
-  - [6.1](#strings--quotes) 对string用单引号 `''` 。 eslint: [`quotes`](https://eslint.org/docs/rules/quotes.html)
-
-    ```javascript
-    // bad
-    const name = "Capt. Janeway";
-
-    // bad - 样例应该包含插入文字或换行
-    const name = `Capt. Janeway`;
-
-    // good
-    const name = 'Capt. Janeway';
-    ```
-
-  <a name="6.2"></a>
-  <a name="strings--line-length"></a>
-  - [6.2](#strings--line-length) 超过100个字符的字符串不应该用string串联成多行。
-    > Why? 被折断的字符串工作起来是糟糕的而且使得代码更不易被搜索。
-
-    ```javascript
-    // bad
-    const errorMessage = 'This is a super long error that was thrown because \
-    of Batman. When you stop to think about how Batman had anything to do \
-    with this, you would get nowhere \
-    fast.';
-
-    // bad
-    const errorMessage = 'This is a super long error that was thrown because ' +
-      'of Batman. When you stop to think about how Batman had anything to do ' +
-      'with this, you would get nowhere fast.';
-
-    // good
-    const errorMessage = 'This is a super long error that was thrown because of Batman. When you stop to think about how Batman had anything to do with this, you would get nowhere fast.';
-    ```
-
-  <a name="6.3"></a>
-  <a name="es6-template-literals"></a>
-  - [6.3](#es6-template-literals) 用字符串模板而不是字符串拼接来组织可编程字符串。 eslint: [`prefer-template`](https://eslint.org/docs/rules/prefer-template.html) [`template-curly-spacing`](https://eslint.org/docs/rules/template-curly-spacing)
-
-    > Why? 模板字符串更具可读性、语法简洁、字符串插入参数。
-
-    ```javascript
-    // bad
-    function sayHi(name) {
-      return 'How are you, ' + name + '?';
-    }
-
-    // bad
-    function sayHi(name) {
-      return ['How are you, ', name, '?'].join();
-    }
-
-    // bad
-    function sayHi(name) {
-      return `How are you, ${ name }?`;
-    }
-
-    // good
-    function sayHi(name) {
-      return `How are you, ${name}?`;
-    }
-    ```
-
-  <a name="6.4"></a>
-  <a name="strings--eval"></a>
-  - [6.4](#strings--eval) 永远不要在字符串中用`eval()`，他就是潘多拉盒子。 eslint: [`no-eval`](https://eslint.org/docs/rules/no-eval)
-
-  <a name="6.5"></a>
-  <a name="strings--escaping"></a>
-  - [6.5](#strings--escaping) 不要使用不必要的转义字符。eslint: [`no-useless-escape`](http://eslint.org/docs/rules/no-useless-escape)
-
-    > Why? 反斜线可读性差，所以他们只在必须使用时才出现哦
-
-    ```javascript
-    // bad
-    const foo = '\'this\' \i\s \"quoted\"';
-
-    // good
-    const foo = '\'this\' is "quoted"';
-
-    //best
-    const foo = `my name is '${name}'`;
-    ```
-
-**[回到顶部](#javascript-编码规范)**
-
-
-## 函数
-
-  <a name="7.2"></a>
-  <a name="functions--iife"></a>
-  - [7.2](#functions--iife) 把立即执行函数包裹在圆括号里。 eslint: [`wrap-iife`](http://eslint.org/docs/rules/wrap-iife.html)
-
-    > Why? immediately invoked function expression = IIFE
-    > Why? 一个立即调用的函数表达式是一个单元 - 把它和他的调用者（圆括号）包裹起来，在括号中可以清晰的地表达这些。
-    > Why? 注意：在模块化世界里，你几乎用不着 IIFE
-
-    ```javascript
-    // immediately-invoked function expression (IIFE)
-    (function () {
-      console.log('Welcome to the Internet. Please follow me.');
-    }());
-    ```
-
-  <a name="7.3"></a>
-  <a name="functions--in-blocks"></a>
-  - [7.3](#functions--in-blocks) 不要在非函数块（if、while等等）内声明函数。把这个函数分配给一个变量。浏览器会允许你这样做，但浏览器解析方式不同，这是一个坏消息。【详见`no-loop-func`】 eslint: [`no-loop-func`](http://eslint.org/docs/rules/no-loop-func.html)
-
-  <a name="7.4"></a>
-  <a name="functions--note-on-blocks"></a>
-  - [7.4](#functions--note-on-blocks) **Note:** 在ECMA-262中 [块 `block`] 的定义是： 一系列的语句； 但是函数声明不是一个语句。 函数表达式是一个语句。
-
-    ```javascript
-    // bad
-    if (currentUser) {
-      function test() {
-        console.log('Nope.');
-      }
-    }
-
-    // good
-    let test;
-    if (currentUser) {
-      test = () => {
-        console.log('Yup.');
-      };
-    }
-    ```
-
-  <a name="7.5"></a>
-  <a name="functions--arguments-shadow"></a>
-  - [7.5](#functions--arguments-shadow) 不要用`arguments`命名参数。他的优先级高于每个函数作用域自带的 `arguments` 对象， 这会导致函数自带的 `arguments` 值被覆盖
-
-    ```javascript
-    // bad
-    function foo(name, options, arguments) {
-      // ...
-    }
-
-    // good
-    function foo(name, options, args) {
-      // ...
-    }
-    ```
-
-  <a name="7.6"></a>
-  <a name="es6-rest"></a>
-  - [7.6](#es6-rest) 不要使用`arguments`，用rest语法`...`代替。 eslint: [`prefer-rest-params`](http://eslint.org/docs/rules/prefer-rest-params)
-
-    > Why? `...`明确你想用那个参数。而且rest参数是真数组，而不是类似数组的`arguments`
-
-    ```javascript
-    // bad
-    function concatenateAll() {
-      const args = Array.prototype.slice.call(arguments);
-      return args.join('');
-    }
-
-    // good
-    function concatenateAll(...args) {
-      return args.join('');
-    }
-    ```
-
-  <a name="7.7"></a>
-  <a name="es6-default-parameters"></a>
-  - [7.7](#es6-default-parameters) 用默认参数语法而不是在函数里对参数重新赋值。
-
-    ```javascript
-    // really bad
-    function handleThings(opts) {
-      // 不， 我们不该改arguments
-      // 第二： 如果 opts 的值为 false, 它会被赋值为 {}
-      // 虽然你想这么写， 但是这个会带来一些细微的bug
-      opts = opts || {};
-      // ...
-    }
-
-    // still bad
-    function handleThings(opts) {
-      if (opts === void 0) {
-        opts = {};
-      }
-      // ...
-    }
-
-    // good
-    function handleThings(opts = {}) {
-      // ...
-    }
-    ```
-
-  <a name="7.8"></a>
-  <a name="functions--default-side-effects"></a>
-  - [7.8](#functions--default-side-effects) 默认参数避免副作用
-
-    > Why? 他会令人迷惑不解， 比如下面这个， a到底等于几， 这个需要想一下。
-
-    ```javascript
-    let b = 1;
-    // bad
-    function count(a = b++) {
-      console.log(a);
-    }
-    count();  // 1
-    count();  // 2
-    count(3); // 3
-    count();  // 3
-    ```
-
-  <a name="7.9"></a>
-  <a name="functions--defaults-last"></a>
-  - [7.9](#functions--defaults-last) 把默认参数赋值放在最后
-
-    ```javascript
-    // bad
-    function handleThings(opts = {}, name) {
-      // ...
-    }
-
-    // good
-    function handleThings(name, opts = {}) {
-      // ...
-    }
-    ```
-
-  <a name="7.10"></a>
-  <a name="functions--constructor"></a>
-  - [7.10](#functions--constructor) 不要用函数构造器创建函数。 eslint: [`no-new-func`](http://eslint.org/docs/rules/no-new-func)
-
-    > Why? 以这种方式创建函数将类似于字符串 eval()，这会打开漏洞。
-
-    ```javascript
-    // bad
-    const add = new Function('a', 'b', 'return a + b');
-
-    // still bad
-    const subtract = Function('a', 'b', 'return a - b');
-    ```
-
-  <a name="7.11"></a>
-  <a name="functions--signature-spacing"></a>
-  - [7.11](#functions--signature-spacing) 函数签名部分要有空格。eslint: [`space-before-function-paren`](http://eslint.org/docs/rules/space-before-function-paren) [`space-before-blocks`](http://eslint.org/docs/rules/space-before-blocks)
-
-    > Why? 统一性好，而且在你添加/删除一个名字的时候不需要添加/删除空格
-
-    ```javascript
-    // bad
-    const f = function(){};
-    const g = function (){};
-    const h = function() {};
-
-    // good
-    const x = function () {};
-    const y = function a() {};
-    ```
-
-  <a name="7.12"></a>
-  <a name="functions--spread-vs-apply"></a>
-  - [7.12](#functions--spread-vs-apply) 用`spread`操作符`...`去调用多变的函数更好。 eslint: [`prefer-spread`](http://eslint.org/docs/rules/prefer-spread)
-
-    > Why? 这样更清晰，你不必提供上下文，而且你不能轻易地用`apply`来组成`new`
-
-    ```javascript
-    // bad
-    const x = [1, 2, 3, 4, 5];
-    console.log.apply(console, x);
-
-    // good
-    const x = [1, 2, 3, 4, 5];
-    console.log(...x);
-
-    // bad
-    new (Function.prototype.bind.apply(Date, [null, 2016, 8, 5]));
-
-    // good
-    new Date(...[2016, 8, 5]);
-    ```
-
-
-**[回到顶部](#javascript-编码规范)**
-
-## 箭头函数
-
-  <a name="8.1"></a>
-  <a name="arrows--use-them"></a>
-  - [8.1](#arrows--use-them) 当你一定要用函数表达式（在回调函数里）的时候就用箭头表达式吧。 eslint: [`prefer-arrow-callback`](http://eslint.org/docs/rules/prefer-arrow-callback.html), [`arrow-spacing`](http://eslint.org/docs/rules/arrow-spacing.html)
-
-    > Why? 他创建了一个`this`的当前执行上下文的函数的版本，这通常就是你想要的；而且箭头函数是更简洁的语法
-
-    > Why? 什么时候不用箭头函数： 如果你有一个相当复杂的函数，你可能会把这个逻辑移出到他自己的函数声明里。
-
-    ```javascript
-    // bad
-    [1, 2, 3].map(function (x) {
-      const y = x + 1;
-      return x * y;
-    });
-
-    // good
-    [1, 2, 3].map((x) => {
-      const y = x + 1;
-      return x * y;
-    });
-    ```
-
-  <a name="8.2"></a>
-  <a name="arrows--implicit-return"></a>
-  - [8.2](#arrows--implicit-return) 如果函数体由一个没有副作用的[表达式](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Expressions)语句组成，删除大括号和return。否则，继续用大括号和 `return` 语句。 eslint: [`arrow-parens`](https://eslint.org/docs/rules/arrow-parens.html), [`arrow-body-style`](https://eslint.org/docs/rules/arrow-body-style.html)
-
-    > Why? 语法糖，当多个函数链在一起的时候好读
-
-    ```javascript
-    // bad
-    [1, 2, 3].map(number => {
-      const nextNumber = number + 1;
-      `A string containing the ${nextNumber}.`;
-    });
-
-    // good
-    [1, 2, 3].map(number => `A string containing the ${number}.`);
-
-    // good
-    [1, 2, 3].map((number) => {
-      const nextNumber = number + 1;
-      return `A string containing the ${nextNumber}.`;
-    });
-
-    // good
-    [1, 2, 3].map((number, index) => ({
-      [index]: number
-    }));
-
-    // 表达式有副作用就不要用隐式return
-    function foo(callback) {
-      const val = callback();
-      if (val === true) {
-        // Do something if callback returns true
-      }
-    }
-
-    let bool = false;
-
-    // bad
-    // 这种情况会return bool = true, 不好
-    foo(() => bool = true);
-
-    // good
-    foo(() => {
-      bool = true;
-    });
-    ```
-
-  <a name="8.3"></a>
-  <a name="arrows--paren-wrap"></a>
-  - [8.3](#arrows--paren-wrap) 万一表达式涉及多行，把他包裹在圆括号里更可读。
-
-    > Why? 这样清晰的显示函数的开始和结束
-
-    ```js
-    // bad
-    ['get', 'post', 'put'].map(httpMethod => Object.prototype.hasOwnProperty.call(
-        httpMagicObjectWithAVeryLongName,
-        httpMethod
-      )
-    );
-
-    // good
-    ['get', 'post', 'put'].map(httpMethod => (
-      Object.prototype.hasOwnProperty.call(
-        httpMagicObjectWithAVeryLongName,
-        httpMethod
-      )
-    ));
-    ```
-
-  <a name="8.4"></a>
-  <a name="arrows--one-arg-parens"></a>
-  - [8.4](#arrows--one-arg-parens) 如果你的函数只有一个参数，就删除圆括号。否则，参数总是放在圆括号里。 注意： 一直用圆括号也是没问题，只需要配置 [“always” option](https://eslint.org/docs/rules/arrow-parens#always) for eslint. eslint: [`arrow-parens`](https://eslint.org/docs/rules/arrow-parens.html)
-
-    > Why? 这样少一些混乱， 其实没啥语法上的讲究，就保持一个风格。
-
-    ```js
-    // bad
-    [1, 2, 3].map((x) => x * x);
-
-    // good
-    [1, 2, 3].map(x => x * x);
-
-    // good
-    [1, 2, 3].map(number => (
-      `A long string with the ${number}. It’s so long that we don’t want it to take up space on the .map line!`
-    ));
-    ```
-
-  <a name="8.5"></a>
-  <a name="arrows--confusing"></a>
-  - [8.5](#arrows--confusing) 避免箭头函数(`=>`)和比较操作符（`<=, >=`）混淆. eslint: [`no-confusing-arrow`](http://eslint.org/docs/rules/no-confusing-arrow)
-
-    ```js
-    // bad
-    const itemHeight = item => item.height > 256 ? item.largeSize : item.smallSize;
-
-    // good
-    const itemHeight = (item) => item.height > 256 ? item.largeSize : item.smallSize;
-
-    // good
-    const itemHeight = (item) => {
-      const { height, largeSize, smallSize } = item;
-      return height > 256 ? largeSize : smallSize;
-    };
-    ```
-
-  <a name="8.6"></a>
-  <a name="whitespace--implicit-arrow-linebreak"></a>
-  - [8.6](#whitespace--implicit-arrow-linebreak) 在隐式return中强制约束函数体的位置， 就写在箭头后面。 eslint: [`implicit-arrow-linebreak`](https://eslint.org/docs/rules/implicit-arrow-linebreak)
-
-    ```javascript
-    // bad
-    (foo) =>
-      bar;
-
-    (foo) =>
-      (bar);
-
-    // good
-    (foo) => bar;
-    (foo) => (bar);
-    (foo) => (
-       bar
-    )
-    ```
-
-**[回到顶部](#javascript-编码规范)**
-
-
-## 类和构造函数
-
-  <a name="9.1"></a>
-  <a name="constructors--use-class"></a>
-  - [9.1](#constructors--use-class) 常用`class`，避免直接操作`prototype`
-
-    > Why? `class`语法更简洁更易理解
-
-    ```javascript
-    // bad
-    function Queue(contents = []) {
-      this.queue = [...contents];
-    }
-    Queue.prototype.pop = function () {
-      const value = this.queue[0];
-      this.queue.splice(0, 1);
-      return value;
-    };
-
-
-    // good
-    class Queue {
-      constructor(contents = []) {
-        this.queue = [...contents];
-      }
-      pop() {
-        const value = this.queue[0];
-        this.queue.splice(0, 1);
-        return value;
-      }
-    }
-    ```
-
-  <a name="9.2"></a>
-  <a name="constructors--extends"></a>
-  - [9.2](#constructors--extends) 用`extends`实现继承
-
-    > Why? 它是一种内置的方法来继承原型功能而不打破`instanceof`
-
-    ```javascript
-    // bad
-    const inherits = require('inherits');
-    function PeekableQueue(contents) {
-      Queue.apply(this, contents);
-    }
-    inherits(PeekableQueue, Queue);
-    PeekableQueue.prototype.peek = function () {
-      return this._queue[0];
-    }
-
-    // good
-    class PeekableQueue extends Queue {
-      peek() {
-        return this._queue[0];
-      }
-    }
-    ```
-
-  <a name="9.3"></a>
-  <a name="constructors--chaining"></a>
-  - [9.3](#constructors--chaining) 方法可以返回`this`来实现方法链
-
-    ```javascript
-    // bad
-    Jedi.prototype.jump = function () {
-      this.jumping = true;
-      return true;
-    };
-
-    Jedi.prototype.setHeight = function (height) {
-      this.height = height;
-    };
-
-    const luke = new Jedi();
-    luke.jump(); // => true
-    luke.setHeight(20); // => undefined
-
-    // good
-    class Jedi {
-      jump() {
-        this.jumping = true;
-        return this;
-      }
-
-      setHeight(height) {
-        this.height = height;
-        return this;
-      }
-    }
-
-    const luke = new Jedi();
-
-    luke.jump()
-      .setHeight(20);
-    ```
-
-
-  <a name="9.4"></a>
-  <a name="constructors--tostring"></a>
-  - [9.4](#constructors--tostring) 写一个定制的toString()方法是可以的，只要保证它是可以正常工作且没有副作用的
-
-    ```javascript
-    class Jedi {
-      constructor(options = {}) {
-        this.name = options.name || 'no name';
-      }
-
-      getName() {
-        return this.name;
-      }
-
-      toString() {
-        return `Jedi - ${this.getName()}`;
-      }
-    }
-    ```
-
-  <a name="9.5"></a>
-  <a name="constructors--no-useless"></a>
-  - [9.5](#constructors--no-useless) 如果没有具体说明，类有默认的构造方法。一个空的构造函数或只是代表父类的构造函数是不需要写的。 eslint: [`no-useless-constructor`](http://eslint.org/docs/rules/no-useless-constructor)
-
-    ```javascript
-    // bad
-    class Jedi {
-      constructor() {}
-
-      getName() {
-        return this.name;
-      }
-    }
-
-    // bad
-    class Rey extends Jedi {
-      // 这种构造函数是不需要写的
-      constructor(...args) {
-        super(...args);
-      }
-    }
-
-    // good
-    class Rey extends Jedi {
-      constructor(...args) {
-        super(...args);
-        this.name = 'Rey';
-      }
-    }
-    ```
-
-  <a name="9.6"></a>
-  <a name="classes--no-duplicate-members"></a>
-  - [9.6](#classes--no-duplicate-members) 避免重复类成员。 eslint: [`no-dupe-class-members`](http://eslint.org/docs/rules/no-dupe-class-members)
-
-    > Why? 重复类成员会默默的执行最后一个 —— 重复本身也是一个bug
-
-    ```javascript
-    // bad
-    class Foo {
-      bar() { return 1; }
-      bar() { return 2; }
-    }
-
-    // good
-    class Foo {
-      bar() { return 1; }
-    }
-
-    // good
-    class Foo {
-      bar() { return 2; }
-    }
-    ```
-
-**[回到顶部](#javascript-编码规范)**
-
-## 模块
-
-  <a name="10.1"></a>
-  <a name="modules--use-them"></a>
-  - [10.1](#modules--use-them) 用(`import`/`export`) 模块而不是无标准的模块系统。你可以随时转到你喜欢的模块系统。
-
-    > Why? 模块化是未来，让我们现在就开启未来吧。
-
-    ```javascript
-    // bad
-    const AirbnbStyleGuide = require('./AirbnbStyleGuide');
-    module.exports = AirbnbStyleGuide.es6;
-
-    // ok
-    import AirbnbStyleGuide from './AirbnbStyleGuide';
-    export default AirbnbStyleGuide.es6;
-
-    // best
-    import { es6 } from './AirbnbStyleGuide';
-    export default es6;
-    ```
-
-  <a name="10.2"></a>
-  <a name="modules--no-wildcard"></a>
-  - [10.2](#modules--no-wildcard) 不要用import通配符， 就是 `*` 这种方式
-
-    > Why? 这确保你有单个默认的导出
-
-    ```javascript
-    // bad
-    import * as AirbnbStyleGuide from './AirbnbStyleGuide';
-
-    // good
-    import AirbnbStyleGuide from './AirbnbStyleGuide';
-    ```
-
-  <a name="10.3"></a>
-  <a name="modules--no-export-from-import"></a>
-  - [10.3](#modules--no-export-from-import) 不要直接从import中直接export
-
-    > Why? 虽然一行是简洁的，有一个明确的方式进口和一个明确的出口方式来保证一致性。
-
-    ```javascript
-    // bad
-    // filename es6.js
-    export { es6 as default } from './AirbnbStyleGuide';
-
-    // good
-    // filename es6.js
-    import { es6 } from './AirbnbStyleGuide';
-    export default es6;
-    ```
-
-  <a name="10.4"></a>
-  <a name="modules--no-duplicate-imports"></a>
-  - [10.4](#modules--no-duplicate-imports) 一个路径只 import 一次。
- eslint: [`no-duplicate-imports`](http://eslint.org/docs/rules/no-duplicate-imports)
-    > Why? 从同一个路径下import多行会使代码难以维护
-
-    ```javascript
-    // bad
-    import foo from 'foo';
-    // … some other imports … //
-    import { named1, named2 } from 'foo';
-
-    // good
-    import foo, { named1, named2 } from 'foo';
-
-    // good
-    import foo, {
-      named1,
-      named2,
-    } from 'foo';
-    ```
-
-  <a name="10.5"></a>
-  <a name="modules--no-mutable-exports"></a>
-  - [10.5](#modules--no-mutable-exports) 不要输出可变的变量
- eslint: [`import/no-mutable-exports`](https://github.com/benmosher/eslint-plugin-import/blob/master/docs/rules/no-mutable-exports.md)
-    > Why? 变化通常都是需要避免，特别是当你要输出可变的绑定。虽然在某些场景下可能需要这种技术，但总的来说应该导出常量。
-
-    ```javascript
-    // bad
-    let foo = 3;
-    export { foo }
-
-    // good
-    const foo = 3;
-    export { foo }
-    ```
-
-  <a name="10.6"></a>
-  <a name="modules--prefer-default-export"></a>
-  - [10.6](#modules--prefer-default-export) 在一个单一导出模块里，用 `export default` 更好。
- eslint: [`import/prefer-default-export`](https://github.com/benmosher/eslint-plugin-import/blob/master/docs/rules/prefer-default-export.md)
-
-    > Why? 鼓励使用更多文件，每个文件只做一件事情并导出，这样可读性和可维护性更好。
-
-    ```javascript
-    // bad
-    export function foo() {}
-
-    // good
-    export default function foo() {}
-    ```
-
-  <a name="10.7"></a>
-  <a name="modules--imports-first"></a>
-  - [10.7](#modules--imports-first) `import` 放在其他所有语句之前。
- eslint: [`import/first`](https://github.com/benmosher/eslint-plugin-import/blob/master/docs/rules/first.md)
-    > Why? 让`import`放在最前面防止意外行为。
-
-    ```javascript
-    // bad
-    import foo from 'foo';
-    foo.init();
-
-    import bar from 'bar';
-
-    // good
-    import foo from 'foo';
-    import bar from 'bar';
-
-    foo.init();
-    ```
-
-  <a name="10.8"></a>
-  - [10.8](#108) 当 import 引入的变量过多，一行放不下，这时要像多行数组一样进行换行。
-
-    > Why?  花括号与样式指南中每个其他花括号块遵循相同的缩进规则，逗号也是。
-
-    ```javascript
-    // good
-    import {
-      longNameA,
-      longNameB,
-      longNameC,
-      longNameD,
-      longNameE,
-    } from 'path';
-    ```
-
-  <a name="10.9"></a>
-  <a name="modules--no-webpack-loader-syntax"></a>
-  - [10.9](#modules--no-webpack-loader-syntax) 在import语句里不允许Webpack loader语法
- eslint: [`import/no-webpack-loader-syntax`](https://github.com/benmosher/eslint-plugin-import/blob/master/docs/rules/no-webpack-loader-syntax.md)
-    > Why? 一旦用Webpack语法在import里会把代码耦合到模块绑定器。最好是在`webpack.config.js`里写webpack loader语法
-
-    ```javascript
-    // bad
-    import fooSass from 'css!sass!foo.scss';
-    import barCss from 'style!css!bar.css';
-
-    // good
-    import fooSass from 'foo.scss';
-    import barCss from 'bar.css';
-    ```
-
-**[回到顶部](#javascript-编码规范)**
-
-## 迭代器和生成器
-  <a name="11.1"></a>
-  <a name="generators--spacing"></a>
-  - [11.1](#generators--spacing) 如果你要用生成器，请确保它们的函数签名空格是得当的。 eslint: [`generator-star-spacing`](http://eslint.org/docs/rules/generator-star-spacing)
-
-    > Why? `function` 和 `*` 是同一概念关键字 - `*`不是`function`的修饰符，`function*`是一个和`function`不一样的独特结构
-
-    ```js
-    // bad
-    function * foo() {
-      // ...
-    }
-
-    // bad
-    const bar = function * () {
-      // ...
-    }
-
-    // bad
-    const baz = function *() {
-      // ...
-    }
-
-    // bad
-    const quux = function*() {
-      // ...
-    }
-
-    // bad
-    function*foo() {
-      // ...
-    }
-
-    // bad
-    function *foo() {
-      // ...
-    }
-
-    // very bad
-    function
-    *
-    foo() {
-      // ...
-    }
-
-    // very bad
-    const wat = function
-    *
-    () {
-      // ...
-    }
-
-    // good
-    function* foo() {
-      // ...
-    }
-
-    // good
-    const foo = function* () {
-      // ...
-    }
-    ```
-
-**[回到顶部](#javascript-编码规范)**
-
-
-## 属性
-
-  <a name="12.1"></a>
-  <a name="properties--dot"></a>
-  - [12.1](#properties--dot) 访问属性时使用点符号. eslint: [`dot-notation`](http://eslint.org/docs/rules/dot-notation.html)
-
-    ```javascript
-    const luke = {
-      jedi: true,
-      age: 28,
-    };
-
-    // bad
-    const isJedi = luke['jedi'];
-
-    // good
-    const isJedi = luke.jedi;
-    ```
-
-  <a name="12.2"></a>
-  <a name="properties--bracket"></a>
-  - [12.2](#properties--bracket) 当获取的属性是变量时用方括号`[]`取
-
-    ```javascript
-    const luke = {
-      jedi: true,
-      age: 28,
-    };
-
-    function getProp(prop) {
-      return luke[prop];
-    }
-
-    const isJedi = getProp('jedi');
-    ```
-
-  <a name="12.3"></a>
-  <a name="es2016-properties--exponentiation-operator"></a>
-  - [12.3](#es2016-properties--exponentiation-operator) 做幂运算时用幂操作符 `**` 。 eslint: [`no-restricted-properties`](https://eslint.org/docs/rules/no-restricted-properties).
-
-    ```javascript
-    // bad
-    const binary = Math.pow(2, 10);
-
-    // good
-    const binary = 2 ** 10;
-    ```
-
-**[回到顶部](#javascript-编码规范)**
-
-
-## 变量
-
-  <a name="13.1"></a>
-  <a name="variables--const"></a>
-  - [13.1](#variables--const)  用`const`或`let`声明变量。不这样做会导致全局变量。 我们想要避免污染全局命名空间。 eslint: [`no-undef`](http://eslint.org/docs/rules/no-undef) [`prefer-const`](http://eslint.org/docs/rules/prefer-const)
-
-    ```javascript
-    // bad
-    superPower = new SuperPower();
-
-    // good
-    const superPower = new SuperPower();
-    ```
-
-  <a name="13.2"></a>
-  <a name="variables--one-const"></a>
-  - [13.2](#variables--one-const) 每个变量都用一个 `const` 或 `let `。 eslint: [`one-var`](http://eslint.org/docs/rules/one-var.html)
-
-    > Why? 这种方式很容易去声明新的变量，你不用去考虑把`;`调换成`,`，或者引入一个只有标点的不同的变化。这种做法也可以是你在调试的时候单步每个声明语句，而不是一下跳过所有声明。
-
-    ```javascript
-    // bad
-    const items = getItems(),
-        goSportsTeam = true,
-        dragonball = 'z';
-
-    // bad
-    // (compare to above, and try to spot the mistake)
-    const items = getItems(),
-        goSportsTeam = true;
-        dragonball = 'z';
-
-    // good
-    const items = getItems();
-    const goSportsTeam = true;
-    const dragonball = 'z';
-    ```
-
-  <a name="13.3"></a>
-  <a name="variables--const-let-group"></a>
-  - [13.3](#variables--const-let-group) `const`放一起，`let`放一起
-
-    > Why? 在你需要分配一个新的变量， 而这个变量依赖之前分配过的变量的时候，这种做法是有帮助的
-
-    ```javascript
-    // bad
-    let i, len, dragonball,
-        items = getItems(),
-        goSportsTeam = true;
-
-    // bad
-    let i;
-    const items = getItems();
-    let dragonball;
-    const goSportsTeam = true;
-    let len;
-
-    // good
-    const goSportsTeam = true;
-    const items = getItems();
-    let dragonball;
-    let i;
-    let length;
-    ```
-
-  <a name="13.4"></a>
-  <a name="variables--define-where-used"></a>
-  - [13.4](#variables--define-where-used) 在你需要的地方声明变量，但是要放在合理的位置
-
-    > Why? `let` 和 `const` 都是块级作用域而不是函数级作用域
-
-    ```javascript
-    // bad - unnecessary function call
-    function checkName(hasName) {
-      const name = getName();
-
-      if (hasName === 'test') {
-        return false;
-      }
-
-      if (name === 'test') {
-        this.setName('');
-        return false;
-      }
-
-      return name;
-    }
-
-    // good
-    function checkName(hasName) {
-      if (hasName === 'test') {
-        return false;
-      }
-
-      // 在需要的时候分配
-      const name = getName();
-
-      if (name === 'test') {
-        this.setName('');
-        return false;
-      }
-
-      return name;
-    }
-    ```
-  <a name="13.5"></a>
-  <a name="variables--no-chain-assignment"></a>
-  - [13.5](#variables--no-chain-assignment) 不要使用链接变量分配。 eslint: [`no-multi-assign`](https://eslint.org/docs/rules/no-multi-assign)
-
-    > Why? 链接变量分配创建隐式全局变量。
-
-    ```javascript
-    // bad
-    (function example() {
-      // JavaScript 将这一段解释为
-      // let a = ( b = ( c = 1 ) );
-      // let 只对变量 a 起作用; 变量 b 和 c 都变成了全局变量
-      let a = b = c = 1;
-    }());
-
-    console.log(a); // undefined
-    console.log(b); // 1
-    console.log(c); // 1
-
-    // good
-    (function example() {
-      let a = 1;
-      let b = a;
-      let c = a;
-    }());
-
-    console.log(a); // undefined
-    console.log(b); // undefined
-    console.log(c); // undefined
-
-    // `const` 也是如此
-    ```
-
-
-  <a name="13.7"></a>
-  <a name="variables--linebreak"></a>
-  - [13.7](#variables--linebreak) 在赋值的时候避免在 `=` 前/后换行。 如果你的赋值语句超出 [`max-len`](https://eslint.org/docs/rules/max-len.html)， 那就用小括号把这个值包起来再换行。 eslint [`operator-linebreak`](https://eslint.org/docs/rules/operator-linebreak.html).
-
-    > Why? 在 `=` 附近换行容易混淆这个赋值语句。
-
-    ```javascript
-    // bad
-    const foo =
-      superLongLongLongLongLongLongLongLongFunctionName();
-
-    // bad
-    const foo
-      = 'superLongLongLongLongLongLongLongLongString';
-
-    // good
-    const foo = (
-      superLongLongLongLongLongLongLongLongFunctionName()
-    );
-
-    // good
-    const foo = 'superLongLongLongLongLongLongLongLongString';
-    ```
-
-  <a name="13.8"></a>
-  <a name="variables--no-unused-vars"></a>
-  - [13.8](#variables--no-unused-vars) 不允许有未使用的变量。 eslint: [`no-unused-vars`](https://eslint.org/docs/rules/no-unused-vars)
-
-    > Why? 一个声明了但未使用的变量更像是由于重构未完成产生的错误。这种在代码中出现的变量会使阅读者迷惑。
-
-    ```javascript
-    // bad
-
-    var some_unused_var = 42;
-
-    // 写了没用
-    var y = 10;
-    y = 5;
-
-    // 变量改了自己的值，也没有用这个变量
-    var z = 0;
-    z = z + 1;
-
-    // 参数定义了但未使用
-    function getX(x, y) {
-        return x;
-    }
-
-    // good
-    function getXPlusY(x, y) {
-      return x + y;
-    }
-
-    let x = 1;
-    let y = a + 2;
-
-    alert(getXPlusY(x, y));
-
-    // 'type' 即使没有使用也可以可以被忽略， 因为这个有一个 rest 取值的属性。
-    // 这是从对象中抽取一个忽略特殊字段的对象的一种形式
-    const { type, ...coords } = data;
-    // 'coords' 现在就是一个没有 'type' 属性的 'data' 对象
-    ```
-
-**[回到顶部](#javascript-编码规范)**
-
-## 提升
-
-  <a name="14.1"></a>
-  <a name="hoisting--about"></a>
-  - [14.1](#hoisting--about) `var`声明会被提前到他的作用域的最前面，它分配的值还没有提前。`const` 和 `let`被赋予了新的调用概念[时效区 —— Temporal Dead Zones (TDZ)](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/let#Temporal_dead_zone_and_errors_with_let)。  重要的是要知道为什么 [typeof不再安全](http://es-discourse.com/t/why-typeof-is-no-longer-safe/15).
-
-    ```javascript
-    // 我们知道这个不会工作，假设没有定义全局的notDefined
-    function example() {
-      console.log(notDefined); // => throws a ReferenceError
-    }
-
-    // 在你引用的地方之后声明一个变量，他会正常输出是因为变量作用域上升。
-    // 注意： declaredButNotAssigned的值没有上升
-    function example() {
-      console.log(declaredButNotAssigned); // => undefined
-      var declaredButNotAssigned = true;
-    }
-
-    // 解释器把变量声明提升到作用域最前面，
-    // 可以重写成如下例子， 二者意义相同
-    function example() {
-      let declaredButNotAssigned;
-      console.log(declaredButNotAssigned); // => undefined
-      declaredButNotAssigned = true;
-    }
-
-    // 用 const， let就不一样了
-    function example() {
-      console.log(declaredButNotAssigned); // => throws a ReferenceError
-      console.log(typeof declaredButNotAssigned); // => throws a ReferenceError
-      const declaredButNotAssigned = true;
-    }
-    ```
-
-  <a name="14.2"></a>
-  <a name="hoisting--anon-expressions"></a>
-  - [14.2](#hoisting--anon-expressions) 匿名函数表达式和 `var` 情况相同
-
-    ```javascript
-    function example() {
-      console.log(anonymous); // => undefined
-
-      anonymous(); // => TypeError anonymous is not a function
-
-      var anonymous = function () {
-        console.log('anonymous function expression');
-      };
-    }
-    ```
-
-  - 详情请见[JavaScript Scoping & Hoisting](http://www.adequatelygood.com/2010/2/JavaScript-Scoping-and-Hoisting/) by [Ben Cherry](http://www.adequatelygood.com/).
-
-**[回到顶部](#javascript-编码规范)**
-
-
-## 比较运算符
-
-  <a name="15.1"></a>
-  <a name="comparison--eqeqeq"></a>
-  - [15.1](#comparison--eqeqeq) 用 `===` 和 `!==` 而不是 `==` 和 `!=`. eslint: [`eqeqeq`](http://eslint.org/docs/rules/eqeqeq.html)
-
-  <a name="15.2"></a>
-  <a name="comparison--if"></a>
-  - [15.2](#comparison--if) 条件语句如'if'语句使用强制`ToBoolean'抽象方法来评估它们的表达式，并且始终遵循以下简单规则：
-
-    + **Objects**   计算成 **true**
-    + **Undefined** 计算成 **false**
-    + **Null**      计算成 **false**
-    + **Booleans**  计算成 **the value of the boolean**
-    + **Numbers**
-      + **+0, -0, or NaN** 计算成 **false**
-      + 其他 **true**
-    + **Strings**
-      + `''` 计算成 **false**
-      + 其他 **true**
-
-    ```javascript
-    if ([0] && []) {
-      // true
-      // 数组（即使是空数组）是对象，对象会计算成true
-    }
-    ```
-
-  <a name="15.3"></a>
-  <a name="comparison--shortcuts"></a>
-  - [15.3](#comparison--shortcuts) 布尔值用缩写，而字符串和数字要明确比较对象
-
-    ```javascript
-    // bad
-    if (isValid === true) {
-      // ...
-    }
-
-    // good
-    if (isValid) {
-      // ...
-    }
-
-    // bad
-    if (name) {
-      // ...
-    }
-
-    // good
-    if (name !== '') {
-      // ...
-    }
-
-    // bad
-    if (collection.length) {
-      // ...
-    }
-
-    // good
-    if (collection.length > 0) {
-      // ...
-    }
-    ```
-
-  <a name="15.4"></a>
-  <a name="comparison--moreinfo"></a>
-  - [15.4](#comparison--moreinfo) 更多信息请见Angus Croll的[真理、平等和JavaScript —— Truth Equality and JavaScript](https://javascriptweblog.wordpress.com/2011/02/07/truth-equality-and-javascript/#more-2108)
-
-
-
-  <a name="15.6"></a>
-  <a name="comparison--nested-ternaries"></a>
-  - [15.6](#comparison--nested-ternaries) 三元表达式不应该嵌套，通常是单行表达式。
-
-    eslint rules: [`no-nested-ternary`](http://eslint.org/docs/rules/no-nested-ternary.html).
-
-    ```javascript
-    // bad
-    const foo = maybe1 > maybe2
-      ? "bar"
-      : value1 > value2 ? "baz" : null;
-
-    // better
-    const maybeNull = value1 > value2 ? 'baz' : null;
-
-    const foo = maybe1 > maybe2
-      ? 'bar'
-      : maybeNull;
-
-    // best
-    const maybeNull = value1 > value2 ? 'baz' : null;
-
-    const foo = maybe1 > maybe2 ? 'bar' : maybeNull;
-    ```
-
-  <a name="15.7"></a>
-  <a name="comparison--unneeded-ternary"></a>
-  - [15.7](#comparison--unneeded-ternary) 避免不需要的三元表达式
-
-    eslint rules: [`no-unneeded-ternary`](http://eslint.org/docs/rules/no-unneeded-ternary.html).
-
-    ```javascript
-    // bad
-    const foo = a ? a : b;
-    const bar = c ? true : false;
-    const baz = c ? false : true;
-
-    // good
-    const foo = a || b;
-    const bar = !!c;
-    const baz = !c;
-    ```
-
-  <a name="15.8"></a>
-  <a name="comparison--no-mixed-operators"></a>
-  - [15.8](#comparison--no-mixed-operators) 用圆括号来混合这些操作符。 只有当标准的算术运算符(`+`, `-`, `*`, & `/`)， 并且它们的优先级显而易见时，可以不用圆括号括起来。 eslint: [`no-mixed-operators`](https://eslint.org/docs/rules/no-mixed-operators.html)
-
-    > Why? 这提高了可读性，并且明确了开发者的意图
-
-    ```javascript
-    // bad
-    const foo = a && b < 0 || c > 0 || d + 1 === 0;
-
-    // bad
-    const bar = a ** b - 5 % d;
-
-    // bad
-    // 别人会陷入(a || b) && c 的迷惑中
-    if (a || b && c) {
-      return d;
-    }
-
-    // good
-    const foo = (a && b < 0) || c > 0 || (d + 1 === 0);
-
-    // good
-    const bar = (a ** b) - (5 % d);
-
-    // good
-    if (a || (b && c)) {
-      return d;
-    }
-
-    // good
-    const bar = a + b / c * d;
-    ```
-
-**[回到顶部](#javascript-编码规范)**
-
-
-## 语句块
-
-  <a name="16.1"></a>
-  <a name="blocks--braces"></a>
-  - [16.1](#blocks--braces) 用大括号包裹多行代码块。  eslint: [`nonblock-statement-body-position`](https://eslint.org/docs/rules/nonblock-statement-body-position)
-
-    ```javascript
-    // bad
-    if (test)
-      return false;
-
-    // good
-    if (test) return false;
-
-    // good
-    if (test) {
-      return false;
-    }
-
-    // bad
-    function foo() { return false; }
-
-    // good
-    function bar() {
-      return false;
-    }
-    ```
-
-  <a name="16.2"></a>
-  <a name="blocks--cuddled-elses"></a>
-  - [16.2](#blocks--cuddled-elses) `if`表达式的`else`和`if`的关闭大括号在一行。 eslint: [`brace-style`](http://eslint.org/docs/rules/brace-style.html)
-
-    ```javascript
-    // bad
-    if (test) {
-      thing1();
-      thing2();
-    }
-    else {
-      thing3();
-    }
-
-    // good
-    if (test) {
-      thing1();
-      thing2();
-    } else {
-      thing3();
-    }
-    ```
-
-  <a name="16.3"></a>
-  <a name="blocks--no-else-return"></a>
-  - [16.3](#blocks--no-else-return) 如果 `if` 语句中总是需要用 `return` 返回， 那后续的 `else` 就不需要写了。 `if` 块中包含 `return`， 它后面的 `else if` 块中也包含了 `return`， 这个时候就可以把 `return` 分到多个 `if` 语句块中。 eslint: [`no-else-return`](https://eslint.org/docs/rules/no-else-return)
-
-    ```javascript
-    // bad
-    function foo() {
-      if (x) {
-        return x;
-      } else {
-        return y;
-      }
-    }
-
-    // bad
-    function cats() {
-      if (x) {
-        return x;
-      } else if (y) {
-        return y;
-      }
-    }
-
-    // bad
-    function dogs() {
-      if (x) {
-        return x;
-      } else {
-        if (y) {
-          return y;
-        }
-      }
-    }
-
-    // good
-    function foo() {
-      if (x) {
-        return x;
-      }
-
-      return y;
-    }
-
-    // good
-    function cats() {
-      if (x) {
-        return x;
-      }
-
-      if (y) {
-        return y;
-      }
-    }
-
-    // good
-    function dogs(x) {
-      if (x) {
-        if (z) {
-          return y;
-        }
-      } else {
-        return z;
-      }
-    }
-    ```
-
-**[回到顶部](#javascript-编码规范)**
-
-## 控制语句
-
-  <a name="17.1"></a>
-  <a name="control-statements"></a>
-  - [17.1](#control-statements) 当你的控制语句(`if`, `while` 等)太长或者超过最大长度限制的时候， 把每一个(组)判断条件放在单独一行里。 逻辑操作符放在行首。
-
-    > Why? 把逻辑操作符放在行首是让操作符的对齐方式和链式函数保持一致。这提高了可读性，也让复杂逻辑更容易看清楚。
-
-    ```javascript
-    // bad
-    if ((foo === 123 || bar === 'abc') && doesItLookGoodWhenItBecomesThatLong() && isThisReallyHappening()) {
-      thing1();
-    }
-
-    // bad
-    if (foo === 123 &&
-      bar === 'abc') {
-      thing1();
-    }
-
-    // bad
-    if (foo === 123
-      && bar === 'abc') {
-      thing1();
-    }
-
-    // bad
-    if (
-      foo === 123 &&
-      bar === 'abc'
-    ) {
-      thing1();
-    }
-
-    // good
-    if (
-      foo === 123
-      && bar === 'abc'
-    ) {
-      thing1();
-    }
-
-    // good
-    if (
-      (foo === 123 || bar === 'abc')
-      && doesItLookGoodWhenItBecomesThatLong()
-      && isThisReallyHappening()
-    ) {
-      thing1();
-    }
-
-    // good
-    if (foo === 123 && bar === 'abc') {
-      thing1();
-    }
-    ```
-
-  <a name="17.2"></a>
-  <a name="control-statements--value-selection"></a>
-  - [17.2](#control-statements--value-selection) 不要用选择操作符代替控制语句。
-
-    ```javascript
-    // bad
-    !isRunning && startRunning();
-
-    // good
-    if (!isRunning) {
-      startRunning();
-    }
-    ```
-
-**[回到顶部](#javascript-编码规范)**
-
-## 注释
-
-  <a name="18.1"></a>
-  <a name="comments--multiline"></a>
-  - [18.1](#comments--multiline) 多行注释用 `/** ... */`
-
-    ```javascript
-    // bad
-    // make() returns a new element
-    // based on the passed in tag name
-    //
-    // @param {String} tag
-    // @return {Element} element
-    function make(tag) {
-
-      // ...
-
-      return element;
-    }
-
-    // good
-    /**
-     * make() returns a new element
-     * based on the passed-in tag name
-     */
-    function make(tag) {
-
-      // ...
-
-      return element;
-    }
-    ```
-
-  <a name="18.2"></a>
-  <a name="comments--singleline"></a>
-  - [18.2](#comments--singleline) 单行注释用`//`，将单行注释放在被注释区域上面。如果注释不是在第一行，那么注释前面就空一行
-
-    ```javascript
-    // bad
-    const active = true;  // is current tab
-
-    // good
-    // is current tab
-    const active = true;
-
-    // bad
-    function getType() {
-      console.log('fetching type...');
-      // set the default type to 'no type'
-      const type = this._type || 'no type';
-
-      return type;
-    }
-
-    // good
-    function getType() {
-      console.log('fetching type...');
-
-      // set the default type to 'no type'
-      const type = this._type || 'no type';
-
-      return type;
-    }
-
-    // also good
-    function getType() {
-      // set the default type to 'no type'
-      const type = this._type || 'no type';
-
-      return type;
-    }
-    ```
-
-  <a name="18.3"></a>
-  <a name="comments--spaces"></a>
-  - [18.3](#comments--spaces) 所有注释开头空一个，方便阅读。 eslint: [`spaced-comment`](http://eslint.org/docs/rules/spaced-comment)
-
-    ```javascript
-    // bad
-    //is current tab
-    const active = true;
-
-    // good
-    // is current tab
-    const active = true;
-
-    // bad
-    /**
-     *make() returns a new element
-     *based on the passed-in tag name
-     */
-    function make(tag) {
-
-      // ...
-
-      return element;
-    }
-
-    // good
-    /**
-     * make() returns a new element
-     * based on the passed-in tag name
-     */
-    function make(tag) {
-
-      // ...
-
-      return element;
-    }
-    ```
-
-  <a name="18.4"></a>
-  <a name="comments--actionitems"></a>
-  - [18.4](#comments--actionitems) 在你的注释前使用`FIXME'或`TODO'前缀， 这有助于其他开发人员快速理解你指出的需要重新访问的问题， 或者您建议需要实现的问题的解决方案。 这些不同于常规注释，因为它们是可操作的。 动作是`FIXME： - 需要计算出来`或`TODO： - 需要实现`。
-
-  <a name="18.5"></a>
-  <a name="comments--fixme"></a>
-  - [18.5](#comments--fixme) 用`// FIXME:`给问题做注释
-
-    ```javascript
-    class Calculator extends Abacus {
-      constructor() {
-        super();
-
-        // FIXME: shouldn't use a global here
-        total = 0;
-      }
-    }
-    ```
-
-  <a name="18.6"></a>
-  <a name="comments--todo"></a>
-  - [18.6](#comments--todo) 用`// TODO:`去注释问题的解决方案
-
-    ```javascript
-    class Calculator extends Abacus {
-      constructor() {
-        super();
-
-        // TODO: total should be configurable by an options param
-        this.total = 0;
-      }
-    }
-    ```
-    **类型定义**
-    | 类型定义 | 语法示例 | 解释 |
-    | ------- | ------- | --- |
-    |String|{string}|--|
-    |Number|{number}|--|
-    |Boolean|{boolean}|--|
-    |Object|{Object}|--|
-    |Function|{Function}|--|
-    |RegExp|{RegExp}|--|
-    |Array|{Array}|--|
-    |Date|{Date}|--|
-    |单一类型集合|{Array.&lt;string&gt;}|string 类型的数组|
-    |多类型|{(number｜boolean)}|可能是 number 类型, 也可能是 boolean 类型|
-    |允许为null|{?number}|可能是 number, 也可能是 null|
-    |不允许为null|{!Object}|Object 类型, 但不是 null|
-    |Function类型|{function(number, boolean)}|函数, 形参类型|
-    |Function带返回值|{function(number, boolean):string}|函数, 形参, 返回值类型|
-    |Promise|Promise.&lt;resolveType, rejectType&gt;|Promise，成功返回的数据类型，失败返回的错误类型|
-    |参数可选|@param {string=} name|可选参数, =为类型后缀|
-    |可变参数|@param {...number} args|变长参数,  ...为类型前缀|
-    |任意类型|{*}|任意类型|
-    |可选任意类型|@param {*=} name|可选参数，类型不限|
-    |可变任意类型|@param {...*} args|变长参数，类型不限|
-  
-  <a name="18.7"></a>
-  <a name="comments--function"></a>
-  - [18.7](#comments--function) 函数/方法注释
-
-    当 `return` 关键字仅作退出函数/方法使用时，无须对返回值作注释标识。
-
-    参数和返回值注释必须包含类型信息，且不允许省略参数的说明。
-
-    当函数是内部函数，外部不可访问时，可以使用 `@inner` 标识。
-
-    示例：
-
-    ```javascript
-    /**
-     * 函数描述
-     *
-     * @param {string} p1 参数1的说明
-     * @param {string} p2 参数2的说明，比较长
-     *     那就换行了.
-     * @param {number=} p3 参数3的说明（可选）
-     * @return {Object} 返回值描述
-     */
-    function foo(p1, p2, p3) {
-        p3 = p3 || 10;
-        return {
-            p1: p1,
-            p2: p2,
-            p3: p3
-        };
-    }
-    ```
-    
-  <a name="18.8"></a>
-  <a name="comments--file"></a>
-  - [18.8](#comments--file) 文件注释
-
-    ```javascript
-    /**
-     * @file Describe the file
-     * @author author-name(mail-name@domain.com)
-     *         author-name2(mail-name2@domain.com)
-     */
-    ```
-#### 注意事项
-注释应该着重描述“做了什么”或“为什么这么做”而不是“怎么做”。
+## 事件绑定的方式
+* 嵌入dom
 ```js
-function objToUrlParam(obj = {}) {
-    let param = ''
-    for (let key in obj) {
-        param += '&' + key + '=' + obj[key]
+<button onclick="func()">按钮</button>
+```
+
+* 直接绑定
+```js
+btn.onclick = function(){}
+```
+
+* 事件监听
+```js
+btn.addEventListener('click',function(){})
+```
+
+## 事件触发的流程
+1. 捕获阶段：从外到内
+2. 目标阶段：在目标元素上触发事件
+3. 冒泡阶段：从内到外
+
+## 事件委托
+事件委托利用了事件冒泡，只指定一个事件处理程序，就可以管理某一类型的所有事件。所有用到按钮的事件（多数鼠标事件和键盘事件）都适合采用事件委托技术，
+使用事件委托可以节省内存。
+```js
+<ul>
+  <li>苹果</li>
+  <li>香蕉</li>
+  <li>凤梨</li>
+</ul>
+
+// good
+document.querySelector('ul').onclick = (event) => {
+  let target = event.target
+  if (target.nodeName === 'LI') {
+    console.log(target.innerHTML)
+  }
+}
+
+// bad
+document.querySelectorAll('li').forEach((e) => {
+  e.onclick = function() {
+    console.log(this.innerHTML)
+  }
+}) 
+```
+
+
+
+## 事件循环
+事件循环是一个单线程循环，用于监视调用堆栈并检查是否有工作即将在任务队列中完成。如果调用堆栈为空并且任务队列中有回调函数，则将回调函数出队并推送到调用堆栈中执行。
+
+* [浏览器事件循环](https://github.com/woai3c/Front-end-articles/blob/master/eventloop.md)
+* [Node.js 事件循环，定时器和 process.nextTick()](https://nodejs.org/zh-cn/docs/guides/event-loop-timers-and-nexttick/)
+
+
+## 事件模型
+### DOM0
+
+直接绑定
+```js
+<input onclick="sayHi()"/>
+
+btn.onclick = function() {}
+btn.onclick = null
+```
+
+### DOM2
+* DOM2级事件可以冒泡和捕获
+* 通过addEventListener绑定
+* 通过removeEventListener解绑
+```js
+// 绑定
+btn.addEventListener('click', sayHi)
+// 解绑
+btn.removeEventListener('click', sayHi)
+```
+
+### DOM3
+* DOM3具有更多事件类型
+* DOM3级事件在DOM2级事件的基础上添加了更多的事件类型，全部类型如下：
+```
+UI事件，当用户与页面上的元素交互时触发，如：load、scroll
+焦点事件，当元素获得或失去焦点时触发，如：blur、focus
+鼠标事件，当用户通过鼠标在页面执行操作时触发如：dbclick、mouseup
+滚轮事件，当使用鼠标滚轮或类似设备时触发，如：mousewheel
+文本事件，当在文档中输入文本时触发，如：textInput
+键盘事件，当用户通过键盘在页面上执行操作时触发，如：keydown、keypress
+合成事件，当为IME（输入法编辑器）输入字符时触发，如：compositionstart
+变动事件，当底层DOM结构发生变化时触发，如：DOMsubtreeModified
+```
+参考资料：
+* [dom0、dom2、dom3事件](https://www.jianshu.com/p/3acdf5f71d5b)
+
+
+
+## 如何自定义事件
+### 新模式
+```js
+const div = document.createElement('div') // 不创建元素，直接用 window 对象也可以
+const event = new Event('build')
+
+div.addEventListener('build', function(e) {
+    console.log(111)
+})
+
+div.dispatchEvent(event)
+```
+### 过时的模式
+1. 原生提供了3个方法实现自定义事件
+2. `document.createEvent('Event')` 创建事件
+3. `initEvent` 初始化事件
+4. `dispatchEvent` 触发事件
+
+```js
+const events = {}
+
+function registerEvent(name) {
+    const event = document.createEvent('Event')
+    event.initEvent(name, true, true) // 事件名称，是否允许冒泡，该事件的默认动作是否可以被取消
+    events[name] = event
+}
+
+function triggerEvent(name) {
+    window.dispatchEvent(events[name])
+}
+
+registerEvent('resize') // 注册 resize 事件
+triggerEvent('resize') // 触发 resize 事件
+```
+
+[MDN](https://developer.mozilla.org/zh-CN/docs/Web/Guide/Events/Creating_and_triggering_events)
+
+
+
+## 事件列表
+[事件参考-MDN](https://developer.mozilla.org/zh-CN/docs/Web/Events#%E6%A0%87%E5%87%86%E4%BA%8B%E4%BB%B6)
+
+
+
+## target和currentTarget区别
+* event.target<br>
+返回触发事件的元素
+* event.currentTarget<br>
+返回绑定事件的元素
+
+
+
+## prototype和__proto__的关系是什么
+**先说结论：**
+1. `prototype` 用于访问函数的原型对象。
+2. `__proto__` 用于访问对象实例的原型对象（或者使用 `Object.getPrototypeOf()`）。
+```js
+function Test() {}
+const test = new Test()
+test.__proto__ == Test.prototype // true
+```
+也就是说，函数拥有 `prototype` 属性，对象实例拥有 `__proto__` 属性，它们都是用来访问原型对象的。
+
+函数有点特别，它不仅是个函数，还是个对象。所以它也有 `__proto__` 属性。
+
+**为什么会这样呢**？因为函数是内置构造函数 `Function` 的实例：
+```js
+const test = new Function('function Test(){}')
+test.__proto__ == Function.prototype // true
+```
+所以函数能通过 `__proto__` 访问它的原型对象。
+
+由于 `prototype` 是一个对象，所以它也可以通过 `__proto__` 访问它的原型对象。对象的原型对象，那自然是 `Object.prototype` 了。
+```js
+function Test() {}
+Test.prototype.__proto__ == Object.prototype // true
+```
+这样看起来好像有点复杂，我们可以换个角度来看。`Object` 其实也是内置构造函数:
+```js
+const obj = new Object() // 我们可以把这个 obj 想象成原型对象 prototype
+obj.__proto__ == Object.prototype // true  换个角度来看，相当于 prototype.__proto__ == Object.prototype
+```
+从这一点来看，是不是更好理解一点。
+
+
+为了防止无休止的循环下去，所以 `Object.prototype.__proto__` 是指向 `null` 的，`null` 是万物的终点。
+```js
+Object.prototype.__proto__ == null // true
+```
+既然 `null` 是万物的终点，那使用 `Object.create(null)` 创建的对象是没有 `__proto__` 属性的，也没有 `prototype` 属性。
+
+
+
+## 原型链
+所有的 JS 对象(JS 函数是 prototype)都有一个 `__proto__` 属性，指向它的原型对象。当试图访问一个对象的属性时，如果没有在该对象上找到，它还会搜寻该对象的原型，以及该对象的原型的原型，依次层层向上搜索，直到找到一个名字匹配的属性或到达原型链的末尾。
+
+
+
+## 用 ES5 和 ES6 实现继承
+ES5 prototype 寄生组合式继承
+```js
+function SuperType(name) {
+    this.name = name
+}
+
+SuperType.prototype.sayName = function() {
+    console.log(this.name)
+}
+
+function SubType(name, age) {
+    SuperType.call(this, name)
+    this.age = age
+}
+
+function extendPrototype(Sub, Super) {
+    Sub.prototype = Object.create(Super.prototype)
+    Sub.prototype.constructor = Sub
+}
+
+extendPrototype(SubType, SuperType)
+
+SubType.prototype.sayAge = function() {
+    console.log(this.age)
+}
+
+const sub = new SubType('tom', 18)
+sub.sayAge() // 18
+sub.sayName() // tom
+```
+ES6 class
+```js
+class SuperType {
+    constructor(name) {
+	this.name = name
     }
-    
-    return param? '?' + param.substr(1) : ''
+
+    sayName() {
+	console.log(this.name)
+    }
+}
+
+class SubType extends SuperType {
+    constructor(name, age) {
+	super(name)
+	this.age = age
+    }
+
+    sayAge(age) {
+	console.log(this.age)
+    }
+}
+
+const sub = new SubType('tom', 18)
+sub.sayAge() // 18
+sub.sayName() // tom
+```
+从实现上来看，ES6 更加简洁。
+
+
+
+## 闭包
+闭包是指有权访问另一个函数作用域中的变量的函数。
+```js
+function sayHi(name) {
+    return () => {
+       console.log(`Hi! ${name}`)
+    }
+}
+const test = sayHi('xiaoming')
+test() // Hi! xiaoming
+```
+虽然sayHi函数已经执行完毕，但是其活动对象也不会被销毁，因为test函数仍然引用着sayHi函数中的变量name，这就是闭包。
+
+但也因为闭包引用着另一个函数的变量，导致另一个函数即使不使用了也无法销毁，所以闭包使用过多，会占用较多的内存，这也是一个副作用。
+
+### 利用闭包实现私有属性
+```js
+const test = (function () {
+    let value = 0
+    return {
+        getVal() { return value },
+        setVal(val) { value = val }
+    } 
+})()
+```
+上面的代码，就实现了一个私有属性 `value`，它只能用过 `getVal()` 来获取值，通过 `setVal(val)` 来设置值。
+
+
+## 内存回收
+在 JS 中，有两种内存回收算法。第一种是引用计数垃圾收集，第二种是标记-清除算法（从2012年起，所有现代浏览器都使用了标记-清除垃圾回收算法）。
+### 引用计数垃圾收集
+如果一个对象没有被其他对象引用，那它将被垃圾回收机制回收。
+```js
+let o = { a: 1 }
+```
+一个对象被创建，并被 o 引用。
+```js
+o = null
+```
+刚才被 o 引用的对象现在是零引用，将会被回收。
+#### 循环引用
+引用计数垃圾收集有一个缺点，就是循环引用会造成对象无法被回收。
+```js
+function f(){
+  var o = {};
+  var o2 = {};
+  o.a = o2; // o 引用 o2
+  o2.a = o; // o2 引用 o
+
+  return "azerty";
+}
+
+f();
+```
+在 f() 执行后，函数的局部变量已经没用了，一般来说，这些局部变量都会被回收。但上述例子中，o 和 o2 形成了循环引用，导致无法被回收。
+
+### 标记-清除算法
+这个算法假定设置一个叫做根（root）的对象（在Javascript里，根是全局对象）。垃圾回收器将定期从根开始，找所有从根开始引用的对象，然后找这些对象引用的对象……从根开始，垃圾回收器将找到所有可以获得的对象和收集所有不能获得的对象。
+
+对于刚才的例子来说，在 f() 执行后，由于 o 和 o2 从全局对象出发无法获取到，所以它们将会被回收。
+
+### 高效使用内存
+在 JS 中能形成作用域的有函数、全局作用域、with，在 es6 还有块作用域。局部变量随着函数作用域销毁而被释放，全局作用域需要进程退出才能释放或者使用 delete 和赋空值 `null` `undefined`。
+
+在 V8 中用 delete 删除对象可能会干扰 V8 的优化，所以最好通过赋值方式解除引用。
+
+参考资料：
+* [内存管理](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Memory_Management)
+
+
+
+## 有一个函数，参数是一个函数，返回值也是一个函数，返回的函数功能和入参的函数相似，但这个函数只能执行3次，再次执行无效，如何实现
+这个题目是考察闭包的使用
+```js
+function sayHi() {
+    console.log('hi')
+}
+
+function threeTimes(fn) {
+    let times = 0
+    return () => {
+        if (times++ < 3) {
+            fn()
+        }
+    }
+}
+
+const newFn = threeTimes(sayHi)
+newFn()
+newFn()
+newFn()
+newFn()
+newFn() // 后面两次执行都无任何反应
+```
+通过闭包变量 `times` 来控制函数的执行
+
+
+## 实现add函数,让add(a)(b)和add(a,b)两种调用结果相同
+
+### 实现1
+```js
+function add(a, b) {
+    if (b === undefined) {
+        return function(x) {
+            return a + x
+        }
+    }
+
+    return a + b
 }
 ```
-例如上面这个函数，你可以这样写注释：“将对象转化为 URL 参数”。也可以这样写：“首先遍历对象，获取每一个键值对，将它们拼在一起，最后在前面补个问号，变成 URL 参数”。
-
-第一个注释描述做了什么（这么简单的函数可以不用注释）。第二个注释则描述了怎么做，事实上，这是一种多余的注释，或者说是垃圾注释。
-
-**[回到顶部](#javascript-编码规范)**
-
-
-## 空格
-
-  <a name="19.1"></a>
-  <a name="whitespace--spaces"></a>
-  - [19.1](#whitespace--spaces) tab用4个空格. eslint: [`indent`](http://eslint.org/docs/rules/indent.html)
-
-    ```javascript
-    // good
-    function foo() {
-    ∙∙∙∙const name;
-    }
-    ```
-
-  <a name="19.2"></a>
-  <a name="whitespace--before-blocks"></a>
-  - [19.2](#whitespace--before-blocks) 在大括号前空一格。 eslint: [`space-before-blocks`](http://eslint.org/docs/rules/space-before-blocks.html)
-
-    ```javascript
-    // bad
-    function test(){
-      console.log('test');
+### 实现2——柯里化
+```js
+function curry(fn, ...args1) {
+    // length 是函数对象的一个属性值，指该函数有多少个必须要传入的参数，即形参的个数。
+    if (fn.length == args1.length) {
+        return fn(...args1)
     }
 
-    // good
-    function test() {
-      console.log('test');
+    return function(...args2) {
+        return curry(fn, ...args1, ...args2)
     }
+}
 
-    // bad
-    dog.set('attr',{
-      age: '1 year',
-      breed: 'Bernese Mountain Dog',
-    });
+function add(a, b) {
+    return a + b
+}
 
-    // good
-    dog.set('attr', {
-      age: '1 year',
-      breed: 'Bernese Mountain Dog',
-    });
-    ```
+console.log(curry(add, 1)(2)) // 3
+console.log(curry(add, 1, 2)) // 3
+```
 
-  <a name="19.3"></a>
-  <a name="whitespace--around-keywords"></a>
-  - [19.3](#whitespace--around-keywords) 在控制语句(`if`, `while` 等)的圆括号前空一格。在函数调用和定义时，参数列表和函数名之间不空格。 eslint: [`keyword-spacing`](http://eslint.org/docs/rules/keyword-spacing.html)
 
-    ```javascript
-    // bad
-    if(isJedi) {
-      fight ();
+
+## Ajax
+Ajax(asynchronous JavaScript and XML) 是客户端上创建异步 Web 应用的一种 Web 开发技术。
+
+借助 Ajax，Web 应用可以异步（在后台）向服务器发送数据和从服务器检索数据，而不会干扰现有页面的显示和行为。通过将数据交换层与表示层分离，Ajax 允许网页和扩展 Web 应用程序动态更改内容，而无需重新加载整个页面。
+
+XMLHttpRequest API 经常用于异步通信。此外还有最近流行的fetch API。
+```js
+const xhr = new XMLHttpRequest()
+xhr.onload = (res) => {
+    if (xhr.status == 200) {
+        console.log(xhr.response)
     }
+}
 
-    // good
-    if (isJedi) {
-      fight();
-    }
-
-    // bad
-    function fight () {
-      console.log ('Swooosh!');
-    }
-
-    // good
-    function fight() {
-      console.log('Swooosh!');
-    }
-    ```
-
-  <a name="19.4"></a>
-  <a name="whitespace--infix-ops"></a>
-  - [19.4](#whitespace--infix-ops) 用空格来隔开运算符。 eslint: [`space-infix-ops`](http://eslint.org/docs/rules/space-infix-ops.html)
-
-    ```javascript
-    // bad
-    const x=y+5;
-
-    // good
-    const x = y + 5;
-    ```
+xhr.open('get', 'https://api.github.com/')
+xhr.send()
+```
 
 
-  <a name="19.6"></a>
-  <a name="whitespace--chains"></a>
-  - [19.6](#whitespace--chains) 当出现长的方法链（>2个）时用缩进。用点开头强调该行是一个方法调用，而不是一个新的语句。eslint: [`newline-per-chained-call`](http://eslint.org/docs/rules/newline-per-chained-call) [`no-whitespace-before-property`](http://eslint.org/docs/rules/no-whitespace-before-property)
+## 使用Ajax的优缺点分别是什么
 
-    ```javascript
-    // bad
-    $('#items').find('.selected').highlight().end().find('.open').updateCount();
+### 优点
 
-    // bad
-    $('#items').
-      find('.selected').
-        highlight().
-        end().
-      find('.open').
-        updateCount();
+* 交互性更好。来自服务器的新内容可以动态更改，无需重新加载整个页面。
+* 减少与服务器的连接，因为脚本和样式只需要被请求一次。
+* 状态可以维护在一个页面上。JavaScript 变量和 DOM 状态将得到保持，因为主容器页面未被重新加载。
+* 基本上包括大部分 SPA 的优点。
 
-    // good
-    $('#items')
-      .find('.selected')
-        .highlight()
-        .end()
-      .find('.open')
-        .updateCount();
+### 缺点
 
-    // bad
-    const leds = stage.selectAll('.led').data(data).enter().append('svg:svg').classed('led', true)
-        .attr('width', (radius + margin) * 2).append('svg:g')
-        .attr('transform', `translate(${radius + margin},${radius + margin})`)
-        .call(tron.led);
+* 动态网页很难收藏。
+* 如果 JavaScript 已在浏览器中被禁用，则不起作用。
+* 有些网络爬虫不执行 JavaScript，也不会看到 JavaScript 加载的内容。
+* 基本上包括大部分 SPA 的缺点。
 
-    // good
-    const leds = stage.selectAll('.led')
-        .data(data)
-      .enter().append('svg:svg')
-        .classed('led', true)
-        .attr('width', (radius + margin) * 2)
-      .append('svg:g')
-        .attr('transform', `translate(${radius + margin},${radius + margin})`)
-        .call(tron.led);
+参考资料：
+* [使用 Ajax 的优缺点分别是什么？](https://github.com/yangshun/front-end-interview-handbook/blob/master/contents/zh/javascript-questions.md#%E4%BD%BF%E7%94%A8ajax%E7%9A%84%E4%BC%98%E7%BC%BA%E7%82%B9%E5%88%86%E5%88%AB%E6%98%AF%E4%BB%80%E4%B9%88)
 
-    // good
-    const leds = stage.selectAll('.led').data(data);
-    ```
 
-  <a name="19.7"></a>
-  <a name="whitespace--after-blocks"></a>
-  - [19.7](#whitespace--after-blocks) 在一个代码块后下一条语句前空一行。
 
-    ```javascript
-    // bad
-    if (foo) {
-      return bar;
-    }
-    return baz;
 
-    // good
-    if (foo) {
-      return bar;
-    }
+## Ajax和Fetch区别
+* ajax是使用XMLHttpRequest对象发起的，但是用起来很麻烦，所以ES6新规范就有了fetch，fetch发一个请求不用像ajax那样写一大堆代码。
+* 使用fetch无法取消一个请求，这是因为fetch基于Promise，而Promise无法做到这一点。
+* 在默认情况下，fetch不会接受或者发送cookies
+* fetch没有办法原生监测请求的进度，而XMLHttpRequest可以
+* fetch只对网络请求报错，对400，500都当做成功的请求，需要封装去处理
+* fetch由于是ES6规范，兼容性上比不上XMLHttpRequest
 
-    return baz;
 
-    // bad
-    const obj = {
-      foo() {
-      },
-      bar() {
-      },
-    };
-    return obj;
 
-    // good
-    const obj = {
-      foo() {
-      },
+## 变量提升
+var 会使变量提升，var 无论发生在何处，都在执行任何代码之前进行处理。let和const不会使变量提升，提前使用会报错。
+变量提升（hoisting）是用于解释代码中变量声明行为的术语。使用var关键字声明或初始化的变量，会将声明语句“提升”到当前作用域的顶部。 但是，只有声明才会触发提升，赋值语句（如果有的话）将保持原样。
 
-      bar() {
-      },
-    };
 
-    return obj;
 
-    // bad
-    const arr = [
-      function foo() {
-      },
-      function bar() {
-      },
-    ];
-    return arr;
+## 使用let、var和const创建变量有什么区别
+用 var 声明的变量的作用域是它当前的执行上下文，它可以是嵌套的函数，也可以是声明在任何函数外的变量。let 和 const 是块级作用域，意味着它们只能在最近的一组花括号（function、if-else 代码块或 for 循环中）中访问。
 
-    // good
-    const arr = [
-      function foo() {
-      },
+var 声明的全局变量和函数都会成为 window 对象的属性和方法。使用 let 和 const 的顶级声明不会定义在全局上下文中，但在作用域链解析上效果是一样的。
 
-      function bar() {
-      },
-    ];
+```js
+function foo() {
+  // 所有变量在函数中都可访问
+  var bar = 'bar';
+  let baz = 'baz';
+  const qux = 'qux';
 
-    return arr;
-    ```
+  console.log(bar); // bar
+  console.log(baz); // baz
+  console.log(qux); // qux
+}
 
-  <a name="19.8"></a>
-  <a name="whitespace--padded-blocks"></a>
-  - [19.8](#whitespace--padded-blocks) 不要用空白行填充块。 eslint: [`padded-blocks`](http://eslint.org/docs/rules/padded-blocks.html)
+console.log(bar); // ReferenceError: bar is not defined
+console.log(baz); // ReferenceError: baz is not defined
+console.log(qux); // ReferenceError: qux is not defined
+```
 
-    ```javascript
-    // bad
-    function bar() {
+```js
+if (true) {
+  var bar = 'bar';
+  let baz = 'baz';
+  const qux = 'qux';
+}
 
-      console.log(foo);
+// 用 var 声明的变量在函数作用域上都可访问
+console.log(bar); // bar
+// let 和 const 定义的变量在它们被定义的语句块之外不可访问
+console.log(baz); // ReferenceError: baz is not defined
+console.log(qux); // ReferenceError: qux is not defined
+```
 
-    }
+var会使变量提升，这意味着变量可以在声明之前使用。let和const不会使变量提升，提前使用会报错。
 
-    // also bad
-    if (baz) {
+```js
+console.log(foo); // undefined
 
-      console.log(qux);
+var foo = 'foo';
+
+console.log(baz); // ReferenceError: can't access lexical declaration 'baz' before initialization
+
+let baz = 'baz';
+
+console.log(bar); // ReferenceError: can't access lexical declaration 'bar' before initialization
+
+const bar = 'bar';
+```
+
+用var重复声明不会报错，但let和const会。
+
+```js
+var foo = 'foo';
+var foo = 'bar';
+console.log(foo); // "bar"
+
+let baz = 'baz';
+let baz = 'qux'; // Uncaught SyntaxError: Identifier 'baz' has already been declared
+```
+
+let和const的区别在于：let允许多次赋值，而const只允许一次。
+
+```js
+// 这样不会报错。
+let foo = 'foo';
+foo = 'bar';
+
+// 这样会报错。
+const baz = 'baz';
+baz = 'qux';
+```
+
+
+## 对象浅拷贝和深拷贝有什么区别
+在 `JS` 中，除了基本数据类型，还存在对象、数组这种引用类型。
+基本数据类型，拷贝是直接拷贝变量的值，而引用类型拷贝的其实是变量的地址。
+```
+let o1 = {a: 1}
+let o2 = o1
+```
+在这种情况下，如果改变 `o1` 或 `o2` 其中一个值的话，另一个也会变，因为它们都指向同一个地址。
+```
+o2.a = 3
+console.log(o1.a) // 3
+```
+而浅拷贝和深拷贝就是在这个基础之上做的区分，如果在拷贝这个对象的时候，只对基本数据类型进行了拷贝，而对引用数据类型只是进行了引用的传递，而没有重新创建一个新的对象，则认为是浅拷贝。反之，在对引用数据类型进行拷贝的时候，创建了一个新的对象，并且复制其内的成员变量，则认为是深拷贝。
+
+
+
+## 怎么实现对象深拷贝
+这种方法有缺陷，详情请看[关于JSON.parse(JSON.stringify(obj))实现深拷贝应该注意的坑](https://www.jianshu.com/p/b084dfaad501)
+```js
+let o1 = {a:{
+    b:1
+  }
+}
+let o2 = JSON.parse(JSON.stringify(o1))
+```
+基础版
+```js
+function deepCopy(target) {
+    if (typeof target == 'object') {
+        const result = Array.isArray(target)? [] : {}
+        for (const key in target) {
+            if (typeof target[key] == 'object') {
+                result[key] = deepCopy(target[key])
+            } else {
+                result[key] = target[key]
+            }
+        }
+
+        return result
+    } else if (typeof target == 'function') {
+        return eval('(' + test.toString() + ')')
     } else {
-      console.log(foo);
+        return target
+    }
+}
+```
+完整版
+```js
+const mapTag = '[object Map]'
+const setTag = '[object Set]'
+const arrayTag = '[object Array]'
+const objectTag = '[object Object]'
+const symbolTag = '[object Symbol]'
 
+function deepCopy(origin, map = new WeakMap()) {
+    if (!origin || !isObject(origin)) return origin
+
+    const objType = getObjType(origin)
+    const result = createObj(origin, objType)
+
+    // 防止循环引用，不会遍历已经在 map 中的对象，因为在上一层正在遍历
+    if (map.get(origin)) {
+        return map.get(origin)
     }
 
-    // good
-    function bar() {
-      console.log(foo);
+    map.set(origin, result)
+
+    // set
+    if (objType == setTag) {
+        for (const value of origin) {
+            result.add(deepCopy(value, map))
+        }
+
+        return result
     }
 
-    // good
-    if (baz) {
-      console.log(qux);
-    } else {
-      console.log(foo);
-    }
-    ```
+    // map
+    if (objType == mapTag) {
+        for (const [key, value] of origin) {
+            result.set(key, deepCopy(value, map))
+        }
 
-  <a name="19.9"></a>
-  <a name="whitespace--in-parens"></a>
-  - [19.9](#whitespace--in-parens) 圆括号里不要加空格。 eslint: [`space-in-parens`](http://eslint.org/docs/rules/space-in-parens.html)
-
-    ```javascript
-    // bad
-    function bar( foo ) {
-      return foo;
+        return result
     }
 
-    // good
-    function bar(foo) {
-      return foo;
+    // 对象或数组
+    if (objType == objectTag || objType == arrayTag) {
+        for (const key in origin) {
+            result[key] = deepCopy(origin[key], map)
+        }
+
+        return result
     }
 
-    // bad
-    if ( foo ) {
-      console.log(foo);
-    }
+    return result
+}
 
-    // good
-    if (foo) {
-      console.log(foo);
-    }
-    ```
+function getObjType(obj) {
+    return Object.prototype.toString.call(obj)
+}
 
-  <a name="19.10"></a>
-  <a name="whitespace--in-brackets"></a>
-  - [19.10](#whitespace--in-brackets) 方括号里不要加空格。看示例。 eslint: [`array-bracket-spacing`](http://eslint.org/docs/rules/array-bracket-spacing.html)
+function createObj(obj, type) {
+    if (type == objectTag) return {}
+    if (type == arrayTag) return []
+    if (type == symbolTag) return Object(Symbol.prototype.valueOf.call(obj))
 
-    ```javascript
-    // bad
-    const foo = [ 1, 2, 3 ];
-    console.log(foo[ 0 ]);
+    return new obj.constructor(obj)
+}
 
-    // good， 逗号分隔符还是要空格的
-    const foo = [1, 2, 3];
-    console.log(foo[0]);
-    ```
+function isObject(origin) {
+    return typeof origin == 'object'
+}
+```
+[如何写出一个惊艳面试官的深拷贝?](https://juejin.im/post/5d6aa4f96fb9a06b112ad5b1)
 
 
-  <a name="19.12"></a>
-  <a name="whitespace--max-len"></a>
-  - [19.12](#whitespace--max-len) 避免一行代码超过120个字符（包含空格）。
-  - 注意： 对于[上面——strings--line-length](#strings--line-length)，长字符串不受此规则限制，不应分解。 eslint: [`max-len`](http://eslint.org/docs/rules/max-len.html)
-
-    > Why? 这样确保可读性和可维护性
-
-    ```javascript
-    // bad
-    const foo = jsonData && jsonData.foo && jsonData.foo.bar && jsonData.foo.bar.baz && jsonData.foo.bar.baz.quux && jsonData.foo.bar.baz.quux.xyzzy;
-
-    // bad
-    $.ajax({ method: 'POST', url: 'https://airbnb.com/', data: { name: 'John' } }).done(() => console.log('Congratulations!')).fail(() => console.log('You have failed this city.'));
-
-    // good
-    const foo = jsonData
-      && jsonData.foo
-      && jsonData.foo.bar
-      && jsonData.foo.bar.baz
-      && jsonData.foo.bar.baz.quux
-      && jsonData.foo.bar.baz.quux.xyzzy;
-
-    // good
-    $.ajax({
-      method: 'POST',
-      url: 'https://airbnb.com/',
-      data: { name: 'John' },
+## 数组去重
+ES5
+```js
+function unique(arr) {
+    const result = []
+    arr.forEach(function(item) {
+        if (result.indexOf(item) == -1) {
+            result.push(item)
+        }
     })
-      .done(() => console.log('Congratulations!'))
-      .fail(() => console.log('You have failed this city.'));
-    ```
-
-
-
-  <a name="19.14"></a>
-  <a name="whitespace--comma-spacing"></a>
-  - [19.14](#whitespace--comma-spacing) `,` 前不要空格， `,` 后需要空格。 eslint: [`comma-spacing`](https://eslint.org/docs/rules/comma-spacing)
-
-    ```javascript
-    // bad
-    var foo = 1,bar = 2;
-    var arr = [1 , 2];
-
-    // good
-    let foo = 1, bar = 2;
-    let arr = [1, 2];
-    ```
-
- 
-
-  <a name="19.16"></a>
-  <a name="whitespace--func-call-spacing"></a>
-  - [19.16](#whitespace--func-call-spacing) 调用函数时，函数名和小括号之间不要空格。 eslint: [`func-call-spacing`](https://eslint.org/docs/rules/func-call-spacing)
-
-    ```javascript
-    // bad
-    func ();
-
-    func
-    ();
-
-    // good
-    func();
-    ```
-
- 
-
-  <a name="19.18"></a>
-  <a name="whitespace--no-trailing-spaces"></a>
-  - [19.18](#whitespace--no-trailing-spaces) 行末不要空格。 eslint: [`no-trailing-spaces`](https://eslint.org/docs/rules/no-trailing-spaces)
-
-  <a name="19.19"></a>
-  <a name="whitespace--no-multiple-empty-lines"></a>
-  - [19.19](#whitespace--no-multiple-empty-lines) 避免出现多个空行。 在文件末尾只允许空一行。 eslint: [`no-multiple-empty-lines`](https://eslint.org/docs/rules/no-multiple-empty-lines)
-
-    <!-- markdownlint-disable MD012 -->
-    ```javascript
-    // bad
-    let x = 1;
-
-
-
-    let y = 2;
-
-    // good
-    let x = 1;
-
-    let y = 2;
-    ```
-    <!-- markdownlint-enable MD012 -->
-
-**[回到顶部](#javascript-编码规范)**
-
-## 逗号
-
-  <a name="20.1"></a>
-  <a name="commas--leading-trailing"></a>
-  - [20.1](#commas--leading-trailing) 不要前置逗号。 eslint: [`comma-style`](http://eslint.org/docs/rules/comma-style.html)
-
-    ```javascript
-    // bad
-    const story = [
-        once
-      , upon
-      , aTime
-    ];
-
-    // good
-    const story = [
-      once,
-      upon,
-      aTime,
-    ];
-
-    // bad
-    const hero = {
-        firstName: 'Ada'
-      , lastName: 'Lovelace'
-      , birthYear: 1815
-      , superPower: 'computers'
-    };
-
-    // good
-    const hero = {
-      firstName: 'Ada',
-      lastName: 'Lovelace',
-      birthYear: 1815,
-      superPower: 'computers',
-    };
-    ```
-
-  <a name="20.2"></a>
-  <a name="commas--dangling"></a>
-  - [20.2](#commas--dangling) 额外结尾逗号: **要** eslint: [`comma-dangle`](http://eslint.org/docs/rules/comma-dangle.html)
-
-    > Why? 这导致git diffs更清洁。 此外，像Babel这样的转换器会删除转换代码中的额外的逗号，这意味着你不必担心旧版浏览器中的[结尾逗号问题](https://github.com/airbnb/javascript/blob/es5-deprecated/es5/README.md#commas)。
-
-    ```diff
-    // bad - 没有结尾逗号的 git diff
-    const hero = {
-         firstName: 'Florence',
-    -    lastName: 'Nightingale'
-    +    lastName: 'Nightingale',
-    +    inventorOf: ['coxcomb chart', 'modern nursing']
-    };
-
-    // good - 有结尾逗号的 git diff
-    const hero = {
-         firstName: 'Florence',
-         lastName: 'Nightingale',
-    +    inventorOf: ['coxcomb chart', 'modern nursing'],
-    };
-    ```
-
-    ```javascript
-    // bad
-    const hero = {
-      firstName: 'Dana',
-      lastName: 'Scully'
-    };
-
-    const heroes = [
-      'Batman',
-      'Superman'
-    ];
-
-    // good
-    const hero = {
-      firstName: 'Dana',
-      lastName: 'Scully',
-    };
-
-    const heroes = [
-      'Batman',
-      'Superman',
-    ];
-
-    // bad
-    function createHero(
-      firstName,
-      lastName,
-      inventorOf
-    ) {
-      // does nothing
-    }
-
-    // good
-    function createHero(
-      firstName,
-      lastName,
-      inventorOf,
-    ) {
-      // does nothing
-    }
-
-    // good (note that a comma must not appear after a "rest" element)
-    function createHero(
-      firstName,
-      lastName,
-      inventorOf,
-      ...heroArgs
-    ) {
-      // does nothing
-    }
-
-    // bad
-    createHero(
-      firstName,
-      lastName,
-      inventorOf
-    );
-
-    // good
-    createHero(
-      firstName,
-      lastName,
-      inventorOf,
-    );
-
-    // good (note that a comma must not appear after a "rest" element)
-    createHero(
-      firstName,
-      lastName,
-      inventorOf,
-      ...heroArgs
-    )
-    ```
-
-**[回到顶部](#javascript-编码规范)**
-
-## 分号
-代码不允许使用分号，但如果代码是以 `(` 或 `[` 开头的，则需要加分号，否则会解析报错。
+    
+    return result
+}
+```
+ES6
 ```js
-// good
-const appleNum = 1
+function unique(arr) {
+   return Array.from(new Set(arr))
+}
+```
+空间换时间
+```js
+function unique(arr) {
+    const result = []
+    const map = new Map()
 
-// good
-;[1, 2, 3].forEach(// ...)
+    for (const val of arr) {
+	if (!map.has(val)) {
+	    result.push(val)
+	    map.set(val, true)
+	}
+    }
+
+    return result
+}
 ```
 
-**[回到顶部](#javascript-编码规范)**
-
-## 类型转换
-
-  <a name="22.1"></a>
-  <a name="coercion--explicit"></a>
-  - [22.1](#coercion--explicit) 在语句开始执行强制类型转换。
-
-  <a name="22.2"></a>
-  <a name="coercion--strings"></a>
-  - [22.2](#coercion--strings)  Strings: eslint: [`no-new-wrappers`](https://eslint.org/docs/rules/no-new-wrappers)
-
-    ```javascript
-    // => this.reviewScore = 9;
-
-    // bad
-    const totalScore = new String(this.reviewScore); // typeof totalScore is "object" not "string"
-
-    // bad
-    const totalScore = this.reviewScore + ''; // invokes this.reviewScore.valueOf()
-
-    // bad
-    const totalScore = this.reviewScore.toString(); // 不保证返回string
-
-    // good
-    const totalScore = String(this.reviewScore);
-    ```
-
-  <a name="22.3"></a>
-  <a name="coercion--numbers"></a>
-  - [22.3](#coercion--numbers) Numbers: 用 `Number` 做类型转换。 eslint: [`radix`](http://eslint.org/docs/rules/radix)
-
-    ```javascript
-    const inputValue = '4';
-
-    // bad
-    const val = new Number(inputValue);
-
-    // bad
-    const val = +inputValue;
-
-    // bad
-    const val = inputValue >> 0;
-
-    // good
-    const val = Number(inputValue);
-    ```
-
-  <a name="22.4"></a>
-  <a name="coercion--comment-deviations"></a>
-  - [22.4](#coercion--comment-deviations) 请在注释中解释为什么要用移位运算和你在做什么。无论你做什么狂野的事，比如由于 `parseInt` 是你的性能瓶颈导致你一定要用移位运算。 请说明这个是因为[性能原因](https://jsperf.com/coercion-vs-casting/3),
-
-    ```javascript
-    // good
-    /**
-     * parseInt是代码运行慢的原因
-     * 用Bitshifting将字符串转成数字使代码运行效率大幅增长
-     */
-    const val = inputValue >> 0;
-    ```
-
-  <a name="22.5"></a>
-  <a name="coercion--bitwise"></a>
-  - [22.5](#coercion--bitwise) **注意:** 用移位运算要小心. 数字使用[64-位](https://es5.github.io/#x4.3.19)表示的，但移位运算常常返回的是32为整形[source](https://es5.github.io/#x11.7))。移位运算对大于32位的整数会导致意外行为。[Discussion](https://github.com/airbnb/javascript/issues/109). 最大的32位整数是 2,147,483,647:
-
-    ```javascript
-    2147483647 >> 0 //=> 2147483647
-    2147483648 >> 0 //=> -2147483648
-    2147483649 >> 0 //=> -2147483647
-    ```
-
-  <a name="22.6"></a>
-  <a name="coercion--booleans"></a>
-  - [22.6](#coercion--booleans) 布尔:
-
-    ```javascript
-    const age = 0;
-
-    // bad
-    const hasAge = new Boolean(age);
-
-    // good
-    const hasAge = Boolean(age);
-
-    // best
-    const hasAge = !!age;
-    ```
-
-**[回到顶部](#javascript-编码规范)**
-
-
-## 命名规则
-
-  <a name="23.1"></a>
-  <a name="naming--descriptive"></a>
-  - [23.1](#naming--descriptive) 避免用一个字母命名，让你的命名可描述。 eslint: [`id-length`](http://eslint.org/docs/rules/id-length)
-
-    ```javascript
-    // bad
-    function q() {
-      // ...
-    }
-
-    // good
-    function query() {
-      // ...
-    }
-    ```
-
-  <a name="23.2"></a>
-  <a name="naming--camelCase"></a>
-  - [23.2](#naming--camelCase) 用小驼峰式命名你的对象、函数、实例。 eslint: [`camelcase`](http://eslint.org/docs/rules/camelcase.html)
-
-    ```javascript
-    // bad
-    const OBJEcttsssss = {};
-    const this_is_my_object = {};
-    function c() {}
-
-    // good
-    const thisIsMyObject = {};
-    function thisIsMyFunction() {}
-    ```
-
-  <a name="23.3"></a>
-  <a name="naming--PascalCase"></a>
-  - [23.3](#naming--PascalCase) 用大驼峰式命名类。 eslint: [`new-cap`](http://eslint.org/docs/rules/new-cap.html)
-
-    ```javascript
-    // bad
-    function user(options) {
-      this.name = options.name;
-    }
-
-    const bad = new user({
-      name: 'nope',
-    });
-
-    // good
-    class User {
-      constructor(options) {
-        this.name = options.name;
-      }
-    }
-
-    const good = new User({
-      name: 'yup',
-    });
-    ```
-
-  <a name="23.4"></a>
-  <a name="naming--leading-underscore"></a>
-  - [23.4](#naming--leading-underscore) 不要用前置或后置下划线。 eslint: [`no-underscore-dangle`](http://eslint.org/docs/rules/no-underscore-dangle.html)
-
-    > Why? JavaScript 没有私有属性或私有方法的概念。尽管前置下划线通常的概念上意味着“private”，事实上，这些属性是完全公有的，因此这部分也是你的API的内容。这一概念可能会导致开发者误以为更改这个不会导致崩溃或者不需要测试。 如果你想要什么东西变成“private”，那就不要让它在这里出现。
-
-    ```javascript
-    // bad
-    this.__firstName__ = 'Panda';
-    this.firstName_ = 'Panda';
-    this._firstName = 'Panda';
-
-    // good
-    this.firstName = 'Panda';
-    ```
-
-  <a name="23.5"></a>
-  <a name="naming--self-this"></a>
-  - [23.5](#naming--self-this) 不要保存引用`this`， 用箭头函数或[函数绑定——Function#bind](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Function/bind).
-
-    ```javascript
-    // bad
-    function foo() {
-      const self = this;
-      return function () {
-        console.log(self);
-      };
-    }
-
-    // bad
-    function foo() {
-      const that = this;
-      return function () {
-        console.log(that);
-      };
-    }
-
-    // good
-    function foo() {
-      return () => {
-        console.log(this);
-      };
-    }
-    ```
-
-
-
-  <a name="22.9"></a>
-  <a name="naming--Acronyms-and-Initialisms"></a>
-  - [22.9](#naming--Acronyms-and-Initialisms) 简称和缩写应该全部大写或全部小写。
-
-    > Why? 名字都是给人读的，不是为了适应电脑的算法的。
-
-    ```javascript
-    // bad
-    import SmsContainer from './containers/SmsContainer';
-
-    // bad
-    const HttpRequests = [
-      // ...
-    ];
-
-    // good
-    import SMSContainer from './containers/SMSContainer';
-
-    // good
-    const HTTPRequests = [
-      // ...
-    ];
-
-    // best
-    import TextMessageContainer from './containers/TextMessageContainer';
-
-    // best
-    const Requests = [
-      // ...
-    ];
-    ```
-
-**[回到顶部](#javascript-编码规范)**
-
-
-## 访问器
-
-  <a name="24.1"></a>
-  <a name="accessors--not-required"></a>
-  - [24.1](#accessors--not-required) 不需要使用属性的访问器函数。
-
-  <a name="24.2"></a>
-  <a name="accessors--no-getters-setters"></a>
-  - [24.2](#accessors--no-getters-setters) 不要使用JavaScript的getters/setters，因为他们会产生副作用，并且难以测试、维护和理解。相反的，你可以用 getVal()和setVal('hello')去创造你自己的accessor函数
-
-    ```javascript
-    // bad
-    class Dragon {
-      get age() {
-        // ...
-      }
-
-      set age(value) {
-        // ...
-      }
-    }
-
-    // good
-    class Dragon {
-      getAge() {
-        // ...
-      }
-
-      setAge(value) {
-        // ...
-      }
-    }
-    ```
-
-  <a name="24.3"></a>
-  <a name="accessors--boolean-prefix"></a>
-  - [24.3](#accessors--boolean-prefix) 如果属性/方法是`boolean`， 用 `isVal()` 或 `hasVal()`
-
-    ```javascript
-    // bad
-    if (!dragon.age()) {
-      return false;
-    }
-
-    // good
-    if (!dragon.hasAge()) {
-      return false;
-    }
-    ```
-
-  <a name="24.4"></a>
-  <a name="accessors--consistent"></a>
-  - [24.4](#accessors--consistent) 用get()和set()函数是可以的，但是要一起用
-
-    ```javascript
-    class Jedi {
-      constructor(options = {}) {
-        const lightsaber = options.lightsaber || 'blue';
-        this.set('lightsaber', lightsaber);
-      }
-
-      set(key, val) {
-        this[key] = val;
-      }
-
-      get(key) {
-        return this[key];
-      }
-    }
-    ```
-
-**[回到顶部](#javascript-编码规范)**
-
-
-## 事件
-
-  <a name="25.1"></a>
-  <a name="events--hash"></a>
-  - [25.1](#events--hash) 通过哈希而不是原始值向事件装载数据时(不论是DOM事件还是像Backbone事件的很多属性)。 这使得后续的贡献者（程序员）想这个事件装载更多的数据时不用去找或者更新每个处理器。例如：
-
-    ```javascript
-    // bad
-    $(this).trigger('listingUpdated', listing.id);
-
-    ...
-
-    $(this).on('listingUpdated', (e, listingId) => {
-      // do something with listingId
-    });
-    ```
-
-    prefer:
-
-    ```javascript
-    // good
-    $(this).trigger('listingUpdated', { listingId: listing.id });
-
-    ...
-
-    $(this).on('listingUpdated', (e, data) => {
-      // do something with data.listingId
-    });
-    ```
-
-  **[回到顶部](#javascript-编码规范)**
-
-
-## 测试
-
-   - 建议使用 [Jest](https://jestjs.io/zh-Hans/docs/getting-started) 进行测试。
-   - 尽量去写很多小而美的纯函数，减少突变的发生
-   - 100% 测试覆盖率是我们努力的目标，即便实际上很少达到。
-   - 每当你修了一个bug， 都要写一个回归测试。 一个bug修复了，没有回归测试，很可能以后会再次出问题。
-
-#### 单元测试应该怎么写呢？
-
-1. 根据正确性写测试，即正确的输入应该有正常的结果。
-2. 根据错误性写测试，即错误的输入应该是错误的结果。
-
-下面看一个简单的示例，现在我们要对一个取绝对值的函数 `abs()` 写测试，它要求输入 `1,2`，结果应该与输入相同；输入 `-1,-2`，结果应该与输入相反。如果输入非数字，例如 `"abc"`，应该抛出一个类型错误。
+## 数据类型
+1. Undefined 
+2. Null 
+3. Boolean 
+4. Number
+5. String 
+6. Object
+7. Symbol
+8. BigInt
+
+
+## 内置函数(原生函数)
+* String
+* Number
+* Boolean
+* Object
+* Function
+* Array
+* Date
+* RegExp
+* Error
+* Symbol
+
+原始值 "I am a string" 并不是一个对象，它只是一个字面量，并且是一个不可变的值。
+
+如果要在这个字面量上执行一些操作，比如获取长度、访问其中某个字符等，那需要将其转换为 String 对象。
+
+幸好，在必要时语言会自动把字符串字面量转换成一个 String 对象，也就是说你并不需要显式创建一个对象。
+
+
+## 如何判断数组与对象
 ```js
-// main.js
-function abs(a) {
-    if (typeof a != 'number') {
-        throw new TypeError('参数必须为数值型')
+Array.isArray([]) // true
+Array.isArray({}) // false
+
+typeof [] // "object"
+typeof {} // "object"
+
+Object.prototype == [].__proto__ // false
+Object.prototype == {}.__proto__ // true
+Array.prototype == [].__proto__ // true
+Array.prototype == {}.__proto__ // false
+```
+
+
+## 自动分号
+有时 JavaScript 会自动为代码行补上缺失的分号，即自动分号插入（Automatic SemicolonInsertion，ASI）。
+
+因为如果缺失了必要的 ; ，代码将无法运行，语言的容错性也会降低。ASI 能让我们忽略那些不必要的 `;` 。
+
+请注意，ASI 只在换行符处起作用，而不会在代码行的中间插入分号。
+
+如果 JavaScript 解析器发现代码行可能因为缺失分号而导致错误，那么它就会自动补上分号。并且，只有在代码行末尾与换行符之间除了空格和注释之外没有别的内容时，它才会这样做。
+
+
+## 浮点数精度
+https://www.css88.com/archives/7340
+
+
+
+## cookie、localStorage、sessionStorage区别
+|特性 | cookie | localStorage | sessionStorage|
+|-|-|-|-|
+|由谁初始化 | 客户端或服务器，服务器可以使用`Set-Cookie`请求头。 | 客户端  | 客户端 |
+|数据的生命周期|一般由服务器生成，可设置失效时间，如果在浏览器生成，默认是关闭浏览器之后失效  |永久保存，可清除  | 仅在当前会话有效，关闭页面后清除|
+|存放数据大小|4KB|5MB|5MB|
+|与服务器通信|每次都会携带在HTTP头中，如果使用cookie保存过多数据会带来性能问题|仅在客户端保存|仅在客户端保存|
+|用途|一般由服务器生成，用于标识用户身份|用于浏览器缓存数据|用于浏览器缓存数据|
+| 访问权限  | 任意窗口 | 任意窗口 | 当前页面窗口  |
+
+
+
+## 自执行函数?用于什么场景？好处?
+#### 自执行函数:
+1. 声明一个匿名函数
+2. 马上调用这个匿名函数。
+
+作用：创建一个独立的作用域。
+
+
+#### 好处
+* 防止变量弥散到全局，以免各种js库冲突。
+* 隔离作用域避免污染，或者截断作用域链，避免闭包造成引用变量无法释放。
+* 利用立即执行特性，返回需要的业务函数或对象，避免每次通过条件判断来处理。
+
+
+#### 场景
+一般用于框架、插件等场景
+
+
+
+## 多个页面之间如何进行通信
+有如下几个方式：
+* cookie
+* web worker
+* localeStorage和sessionStorage
+
+
+
+## css动画和js动画的差异
+1. 代码复杂度，js 动画代码相对复杂一些
+2. 动画运行时，对动画的控制程度上，js 能够让动画，暂停，取消，终止，css动画不能添加事件
+3. 动画性能看，js 动画多了一个js 解析的过程，性能不如 css 动画好
+
+https://zhuanlan.zhihu.com/p/41479807
+
+
+
+## 如何实现文件断点续传
+[字节跳动面试官：请你实现一个大文件上传和断点续传](https://juejin.cn/post/6844904046436843527)
+
+
+
+## new一个对象经历了什么
+```js
+function Test(){}
+const test = new Test()
+```
+
+1. 创建一个新对象：
+```js
+const obj = {}
+```
+2. 设置新对象的constructor属性为构造函数的名称，设置新对象的__proto__属性指向构造函数的prototype对象
+```js
+obj.constructor = Test
+obj.__proto__ = Test.prototype
+```
+3. 使用新对象调用函数，函数中的this被指向新实例对象
+```js
+Test.call(obj)
+```
+4. 将初始化完毕的新对象地址，保存到等号左边的变量中
+
+
+
+## bind、call、apply的区别
+call和apply其实是一样的，区别就在于传参时参数是一个一个传或者是以一个数组的方式来传。<br>
+call和apply都是在调用时生效，改变调用者的this指向。<br>
+```js
+let name = 'Jack'
+const obj = {name: 'Tom'}
+function sayHi() {console.log('Hi! ' + this.name)}
+
+sayHi() // Hi! Jack
+sayHi.call(obj) // Hi! Tom
+
+```
+bind也是改变this指向，不过不是在调用时生效，而是返回一个新函数。
+```js
+const newFunc = sayHi.bind(obj)
+newFunc() // Hi! Tom
+```
+
+
+## 实现 bind call apply 函数
+### bind
+```js
+Function.prototype.bind = function(context, ...extra) {
+    const self = this
+    // 这里不能用箭头函数，防止绑定函数为构造函数
+    return function(...arg) {
+        return self.call(context, ...extra.concat(arg))
+    }
+}
+```
+### call
+```js
+Function.prototype.call = function (context, ...args) {
+    if (context === null || context === undefined) {
+	context = window
     }
 
-    if (a < 0) return -a
-    return a
-}
+    context = context instanceof Object ? context : {}
 
-// test.spec.js
-test('abs', () => {
-    expect(abs(1)).toBe(1)
-    expect(abs(0)).toBe(0)
-    expect(abs(-1)).toBe(1)
-    expect(() => abs('abc')).toThrow(TypeError) // 类型错误
+    let key = Math.random()
+    while (context[key]) {
+	key = Math.random()
+    }
+
+    context[key] = this
+    const result = context[key](...args)
+    delete context[key]
+
+    return result
+}
+```
+### apply
+```js
+Function.prototype.apply = function (context, args = []) {
+    if (!Array.isArray(args)) throw '参数必须为数组'
+
+    if (context === null || context === undefined) {
+	context = window
+    }
+
+    context = context instanceof Object ? context : {}
+
+    let key = Math.random()
+    while (context[key]) {
+	key = Math.random()
+    }
+
+    context[key] = this
+    const result = context[key](...args)
+    delete context[key]
+
+    return result
+}
+```
+
+
+## 实现 compose 函数
+compose（组合）函数特点：
+* `compose` 的参数是函数，返回的也是一个函数
+* 因为除了第一个函数的接受参数，其他函数的接受参数都是上一个函数的返回值，所以初始函数的参数是多元的，而其他函数的接受值是一元的
+* `compsoe` 函数可以接受任意的参数，所有的参数都是函数，且执行方向是自右向左的，初始函数一定放到参数的最右面
+```js
+function compose(...fns) {
+    let isFirst = true
+    return (...args) => {
+	return fns.reduceRight((result, fn) => {
+	    if (!isFirst) return fn(result)
+	    isFirst = false
+	    return fn(...result)
+	}, args)
+    }
+}
+```
+测试
+```
+const greeting = (firstName, lastName) => 'hello, ' + firstName + ' ' + lastName
+const toUpper = str => str.toUpperCase()
+const fn = compose(toUpper, greeting)
+console.log(fn('jack', 'smith')) // HELLO, JACK SMITH
+```
+
+参考资料：
+* [关于javascript函数式编程中compose的实现](https://segmentfault.com/a/1190000008394749)
+
+
+## 请简述`JavaScript`中的`this`
+`this`取值符合以下规则：
+1. 在调用函数时使用`new`关键字，函数内的`this`是一个全新的对象。
+2. 如果`apply`、`call`或`bind`方法用于调用、创建一个函数，函数内的 this 就是作为参数传入这些方法的对象。
+3. 当函数作为对象里的方法被调用时，函数内的`this`是调用该函数的对象。比如当`obj.method()`被调用时，函数内的 this 将绑定到`obj`对象。
+4. 如果调用函数不符合上述规则，那么`this`的值指向全局对象（global object）。浏览器环境下`this`的值指向`window`对象，但是在严格模式下(`'use strict'`)，`this`的值为`undefined`。
+5. 如果符合上述多个规则，则较高的规则（1 号最高，4 号最低）将决定`this`的值。
+6. 如果该函数是 ES2015 中的箭头函数，将忽略上面的所有规则，`this`被设置为它被创建时的上下文。
+
+想获得更深入的解释，请查看[这篇文章](https://codeburst.io/the-simple-rules-to-this-in-javascript-35d97f31bde3)。
+
+
+
+## ==和===的区别是什么
+`==`是抽象相等运算符，而`===`是严格相等运算符。`==`运算符是在进行必要的类型转换后，再比较。`===`运算符不会进行类型转换，所以如果两个值不是相同的类型，会直接返回`false`。使用`==`时，可能发生一些特别的事情，例如：
+```js
+1 == '1'; // true
+1 == [1]; // true
+1 == true; // true
+0 == ''; // true
+0 == '0'; // true
+0 == false; // true
+```
+如果你对`==`和`===`的概念不是特别了解，建议大多数情况下使用`===`
+
+
+
+## 箭头函数和普通函数有什么区别
+* 函数体内的`this`对象，就是定义时所在的对象，而不是使用时所在的对象，用`call` `apply` `bind`也不能改变`this`指向
+* 不可以当作构造函数，也就是说，不可以使用`new`命令，否则会抛出一个错误。
+* 不可以使用`arguments`对象，该对象在函数体内不存在。如果要用，可以用 `rest` 参数代替。
+* 不可以使用`yield`命令，因此箭头函数不能用作 `Generator` 函数。
+* 箭头函数没有原型对象`prototype`
+
+
+
+## 白屏时间
+白屏时间是指浏览器从输入网址，到浏览器开始显示内容的时间。
+
+Performance 接口可以获取到当前页面中与性能相关的信息,该类型的对象可以通过调用只读属性 `Window.performance` 来获得。
+
+`performance.timing.navigationStart` 是一个返回代表一个时刻的 unsigned long long 型只读属性，为紧接着在相同的浏览环境下卸载前一个文档结束之时的 Unix 毫秒时间戳。如果没有上一个文档，则它的值相当于 PerformanceTiming.fetchStart。
+
+所以将以下脚本放在 `</head>` 前面就能获取白屏时间。
+```js
+<script>
+	new Date() - performance.timing.navigationStart
+</script>
+```
+
+参考资料：
+* [PerformanceTiming.navigationStart](https://developer.mozilla.org/zh-CN/docs/Web/API/PerformanceTiming/navigationStart)
+
+## 当你在浏览器输入一个地址后发生了什么
+[当···时发生了什么？](https://github.com/skyline75489/what-happens-when-zh_CN/blob/master/README.rst?utm_medium=social&utm_source=wechat_session&from=timeline&isappinstalled=0)
+
+
+
+## 页面大量图片，如何优化加载，优化用户体验
+1. 图片懒加载。在页面的未可视区域添加一个滚动事件，判断图片位置与浏览器顶端的距离与页面的距离，如果前者小于后者，优先加载。
+2. 如果为幻灯片、相册等，可以使用图片预加载技术，将当前展示图片的前一张和后一张优先下载。
+3. 如果图片为css图片，可以使用CSSsprite，SVGsprite等技术。
+4. 如果图片过大，可以使用特殊编码的图片，加载时会先加载一张压缩的特别厉害的缩略图，以提高用户体验。
+5. 如果图片展示区域小于图片的真实大小，应在服务器端根据业务需要先进行图片压缩，图片压缩后大小与展示一致。
+
+
+
+## 防抖与节流
+#### 防抖(debounce)
+在函数需要频繁触发时，只有当有足够空闲的时间时，才执行一次。就好像在百度搜索时，每次输入之后都有联想词弹出，这个控制联想词的方法就不可能是输入框内容一改变就触发的，他一定是当你结束输入一段时间之后才会触发。
+
+#### 节流(thorttle)
+预定一个函数只有在大于等于执行周期时才执行，周期内调用不执行。就好像你在淘宝抢购某一件限量热卖商品时，你不断点刷新点购买，可是总有一段时间你点上是没有效果，这里就用到了节流，就是怕点的太快导致系统出现bug。
+
+#### 区别
+在发生持续触发事件时，防抖设置事件延迟并在空闲时间去触发事件，而节流则是隔一定的时间触发一次。
+
+一个简单的防抖示例
+```js
+let timer
+input.on('input', () => {
+    clearTimeout(timer)
+    // 停止输入 500 毫秒后开始搜索
+    timer = setTimeout(() => {
+	// 搜索
+    }, 500)
+})
+```
+一个简单的节流示例
+```js
+let isClick = false
+button.on('click', () => {
+    if (isClick) return
+    isClick = true
+    // 其他代码。。。
+    // 每 10 秒只允许点击一次
+    setTimeout(() => {
+	isClick = false
+    }, 10000)
 })
 ```
 
-**[回到顶部](#javascript-编码规范)**
+来个困难点的，根据图片要求实现节流函数
+
+![](./img/throttle.png)
+
+实现
+```js
+const throttle = (function(delay) {
+    let waitForCallFunc
+    let canCall = true
+    return function throttle(callback) {
+        if (!canCall) {
+            if (callback) waitForCallFunc = callback
+            return
+        }
+
+        callback()
+        canCall = false
+        setTimeout(() => {
+            canCall = true
+            if (waitForCallFunc) {
+                throttle(waitForCallFunc)
+                waitForCallFunc = null
+            }
+        }, delay)
+    }
+})(1000)
+
+throttle(() => console.log(1))
+
+setTimeout(() => {
+    throttle(() => console.log(2))
+}, 500)
+
+setTimeout(() => {
+    throttle(() => console.log(3))
+}, 700)
+
+setTimeout(() => {
+    throttle(() => console.log(4))
+}, 1200)
+
+setTimeout(() => {
+    throttle(() => console.log(5))
+}, 1400)
+
+setTimeout(() => {
+    throttle(() => console.log(6))
+}, 1600)
+
+setTimeout(() => {
+    throttle(() => console.log(7))
+}, 2500)
+```
+参考资料：
+* [js网络请求性能优化之防抖与节流](https://blog.csdn.net/jacoox/article/details/80719456)
+
+
+
+## 如何做到修改url参数页面不刷新
+HTML5引入了 `history.pushState()` 和 `history.replaceState()` 方法，它们分别可以添加和修改历史记录条目。
+```js
+let stateObj = {
+    foo: "bar",
+};
+
+history.pushState(stateObj, "page 2", "bar.html");
+```
+假设当前页面为 `foo.html`，执行上述代码后会变为 `bar.html`，点击浏览器后退，会变为 `foo.html`，但浏览器并不会刷新。
+`pushState()` 需要三个参数: 一个状态对象, 一个标题 (目前被忽略), 和 (可选的) 一个 URL. 让我们来解释下这三个参数详细内容：
+
+* 状态对象 — 状态对象 `state` 是一个 JavaScript 对象，通过 `pushState ()` 创建新的历史记录条目。无论什么时候用户导航到新的状态，`popstate` 事件就会被触发，且该事件的 `state` 属性包含该历史记录条目状态对象的副本。
+状态对象可以是能被序列化的任何东西。原因在于 Firefox 将状态对象保存在用户的磁盘上，以便在用户重启浏览器时使用，我们规定了状态对象在序列化表示后有640k的大小限制。如果你给 `pushState()` 方法传了一个序列化后大于 640k 的状态对象，该方法会抛出异常。如果你需要更大的空间，建议使用 `sessionStorage` 以及 `localStorage`.
+
+* 标题 — Firefox 目前忽略这个参数，但未来可能会用到。传递一个空字符串在这里是安全的，而在将来这是不安全的。二选一的话，你可以为跳转的 `state` 传递一个短标题。
+
+* URL — 该参数定义了新的历史URL记录。注意，调用 `pushState()` 后浏览器并不会立即加载这个 URL，但可能会在稍后某些情况下加载这个 URL，比如在用户重新打开浏览器时。新URL不必须为绝对路径。如果新URL是相对路径，那么它将被作为相对于当前 URL 处理。新 URL 必须与当前URL同源，否则 `pushState()` 会抛出一个异常。该参数是可选的，缺省为当前 URL。
+
+参考资料：
+* [History API](https://developer.mozilla.org/zh-CN/docs/Web/API/History_API)
+
+
+## 格式化金钱，每千分位加逗号
+```js
+function format(str) {
+    let s = ''
+    let count = 0
+    for (let i = str.length - 1; i >= 0; i--) {
+        s = str[i] + s
+        count++
+        if (count % 3 == 0 && i != 0) {
+            s = ',' + s
+        }
+    }
+    return s
+}
+```
+```js
+function format(str) {
+    return str.replace(/(\d)(?=(?:\d{3})+$)/g, '$1,')
+}
+```
+
+
+## 请用js去除字符串空格
+### 去除所有空格
+```
+str.replace(/\s/g, '')
+```
+### 去除两边空格
+```
+str.replace(/^\s+|\s+$/g, '')
+// 原生方法
+str.trim()
+```
+
+
+## 创建对象有几种方法
+* 字面量
+```js
+const obj = {a: 1}
+```
+* 构造函数
+```js
+function Obj(val) {
+    this.a = val
+}
+
+const obj = new Obj(1)
+```
+* Object.create
+```js
+const obj = Object.create({a: 1})
+```
+
+
+## null和undefined的区别
+`null` 表示一个对象是“没有值”的值，也就是值为“空”
+
+`undefined` 表示一个变量声明了没有初始化(赋值)
+
+`undefined` 和 `null` 在if语句中，都会被自动转为false
+
+`undefined` 不是一个有效的JSON，而 `null` 是
+
+`undefined` 的类型(typeof)是 `undefined`
+
+`null` 的类型(typeof)是 `object`
+
+Javascript将未赋值的变量默认值设为 `undefined`
+
+Javascript从来不会将变量设为 `null`。 它是用来让程序员表明某个用var声明的变量时没有值的
+	
+
+
+## 反转数组
+### 要求
+**input**: I am a student <br>
+**output**: student a am I <br>
+输入是数组 输出也是数组<br>
+不允许用 `split` `splice` `reverse`<br>
+
+#### 解法一
+```js
+function reverseArry(arr) {
+    const result = []
+    while (arr.length) {
+        result.push(arr.pop())
+    }
+    
+    return result
+}
+
+console.log(reverseArry(['I', 'am', 'a', 'student']))
+// ["student", "a", "am", "I"]
+```
+#### 解法二
+```js
+function reverseArry(arry) {
+    const result = []
+    const distance = arry.length - 1
+    for (let i = distance; i >= 0; i--) {
+        result[distance - i] = arry[i]
+    }
+
+    return result
+}
+```
+
+
+
+## 将金额12345转成中文金额表示
+### 要求
+```js
+12345 => 一万两千三百四十五
+10086 => 一万零八十六
+100010001 => 一亿零一万零一
+100000000 => 一亿
+```
+单位支持到亿
+
+### 实现
+```js
+function numToString(num) {
+    if (num > 999999999) throw '超过金额上限，最大单位为亿'
+    const unitMap = ['', '十', '百', '千', '万', '十', '百', '千', '亿']
+    const stringMap = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九']
+    const n = num + ''
+    const len = n.length
+    let lastIndex = len - 1
+    let result = ''
+    for (let i = 0; i < len; i++) {
+        if (i > 0 && n[i] == '0') {
+            if (n[i - 1] != '0') result += '零'
+        } else {
+            result += stringMap[n[i]] + unitMap[lastIndex]
+        }
+
+        lastIndex--
+    }
+    
+    lastIndex = result.length - 1
+    if (result[lastIndex] == '零') return result.slice(0, lastIndex)
+    return result
+}
+
+console.log(numToString(12345)) // 一万二千三百四十五
+console.log(numToString(10086)) // 一万零八十六
+console.log(numToString(100010001)) // 一亿零一万零一
+console.log(numToString(100000000)) // 一亿
+```
+
+
+## 异步求和
+### 要求
+提供一个异步 `add` 方法如下，需要实现一个 `await sum(...args)` 函数：
+```js
+function asyncAdd(a, b, callback) {
+    setTimeout(function() {
+	callback(null, a + b)
+    }, 1000)
+}
+```
+### 实现
+```js
+function sum(...args) {
+    let start = 0
+    let result = 0
+    let count = 0 // 用于计算开启了多少个 Promise
+
+    function _sum(resolve) {
+	count++
+	new Promise((r, j) => {
+	    let a = args[start++]
+	    let b = args[start++]
+	    a = a !== undefined? a : 0
+	    b = b !== undefined? b : 0 // 如果访问的元素超出了数组范围，则转为 0
+	    asyncAdd(a, b, (context, sum) => {
+		r(sum)
+	    })
+
+	    if (start < args.length) {
+		_sum(resolve)
+	    }
+	})
+	.then(sum => {
+	    result += sum
+	    count--
+	    if (count == 0) resolve(result) // 所有的 Promise 执行完毕，返回结果
+	})
+    }
+
+    return new Promise((resolve, reject) => {
+	if (!args || !args.length) return resolve(0)
+	if (args.length == 1) return resolve(args[0])
+	_sum(resolve)
+    })
+}
+```
+### 测试
+```js
+sum(1,2,3,4,5,6,7,8,9,10,11).then(sum => console.log(sum)) // 66
+// or
+async function test() {
+    console.log(await sum(1,2,3,4,5,6,7,8,9,10,11))
+}
+
+test() // 66
+```
+
+
+## 异步求和升级版
+### 要求
+假设有一台本地机器，无法做加减乘除运算，因此无法执行 a + b、a+ = 1 这样的 JS 代码，然后我们提供一个服务器端的 HTTP API，可以传两个数字类型的参数，响应结果是这两个参数的和，这个 HTTP API 的 JS SDK（在本地机器上运行）的使用方法如下：
+```js
+asyncAdd(3, 5, (err, result) => {
+  console.log(result); // 8
+});
+```
+模拟实现：
+```js
+function asyncAdd(a, b, cb) {
+  setTimeout(() => {
+    cb(null, a + b);
+  }, Math.floor(Math.random()*100))
+}
+```
+现在要求在本地机器上实现一个 sum 函数，支持以下用法：
+```js
+(async () => {
+  const result1 = await sum(1, 4, 6, 9, 1, 4);
+  const result2 = await sum(3, 4, 9, 2, 5, 3, 2, 1, 7);
+  const result3 = await sum(1, 6, 0, 5);
+  console.log([result1, result2, result3]); // [25, 36, 12]
+})();
+```
+要求 sum 能在最短的时间里返回以上结果
+
+### 实现
+```js
+function asyncAdd(a, b, cb) {
+    setTimeout(() => {
+        cb(null, a + b);
+    }, Math.floor(Math.random()*100))
+}
+
+function sum(...args) {
+    const result = []
+    function _sum(resolve, reject) {
+        new Promise((r, j) => {
+            let a = args.pop()
+            let b = args.pop()
+            a = a !== undefined? a : 0
+            b = b !== undefined? b : 0 // 如果访问的元素超出了数组范围，则转为 0
+            asyncAdd(a, b, (err, res) => {
+                if (err) j(err)
+                r(res)
+            })
+
+            if (args.length) {
+                _sum(resolve, reject)
+            }
+        })
+        .then(val => {
+            result.push(val)
+            setTimeout(() => {
+                if (args.length <= 0) {
+                    resolve(sum(...result))
+                }
+            }, 100)
+        })
+    }
+
+    return new Promise((resolve, reject) => {
+        if (!args || !args.length) resolve(0)
+        if (args.length == 1) resolve(args[0])
+        _sum(resolve, reject)
+    })
+}
+
+(async () => {
+    const result1 = await sum(1, 4, 6, 9, 1, 4)
+    const result2 = await sum(3, 4, 9, 2, 5, 3, 2, 1, 7)
+    const result3 = await sum(1, 6, 0, 5)
+    console.log([result1, result2, result3]) // [25, 36, 12]
+})()
+```
+
+
+
+## 数字集转换成字母集
+### 要求
+`a~z` 有 26个字母，按照 `1~26` 编码，现在给定一个数字字符串，输出所有可能的解码结果，如：输入 1234，输出 ['awd', 'abcd', 'lcd']
+```js
+const map = [0,'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
+function getDecodes(num) {
+    if (!num) return []
+    num += ''
+    const result = []
+    _getDecodes(num, 0, [], result)
+    return result
+}
+
+function _getDecodes(num, start, path, result) {
+    if (start == num.length) return result.push([...path])
+    let c = num[start++]
+    path.push(map[c])
+    _getDecodes(num, start, path, result)
+    path.pop()
+    
+    if (start == num.length) return
+    c += num[start]
+
+    if (c > 26) return
+    path.push(map[c])
+    _getDecodes(num, start + 1, path, result)
+    path.pop()
+}
+```
+
+
+## CommonJS，ES module 是什么，有什么区别？
+它们都是一种模块规范，例如 Node 使用的就是 CommonJS 规范。ES module 则是语言标准上的模块规范。
+
+区别：
+1. CommonJS 模块使用 `require()` 和 `module.exports`，ES6 模块使用 `import`和 `export`。
+2. CommonJS 模块输出的是一个值的浅拷贝，ES6 模块输出的是值的引用。
+3. CommonJS 模块是运行时加载，ES6 模块是编译时输出接口。
+4. CommonJS 模块的 `require()` 是同步加载模块，ES6 模块的 `import` 命令是异步加载，有一个独立的模块依赖的解析阶段。
+5. ES6 模块之中，顶层的 this 指向 undefined；CommonJS 模块的顶层 this 指向当前模块，
+6. 对于循环加载的处理方法不同
+
+第 3 个差异是因为 CommonJS 加载的是一个对象（即 `module.exports` 属性），该对象只有在脚本运行完才会生成。
+
+而 ES6 模块不是对象，它的对外接口只是一种静态定义，在代码静态解析阶段就会生成。
+
+参考资料：
+* [Module 的加载实现](https://es6.ruanyifeng.com/#docs/module-loader)
+
+
+
+## preload和prefetch
+### preload
+`preload` 是 `<link>` 标签 `rel` 属性的属性值，同时需要配合 `as` 属性使用。
+
+`as` 指定将要预加载的内容的类型，使得浏览器能够：
+1. 更精确地优化资源加载优先级。
+2. 匹配未来的加载需求，在适当的情况下，重复利用同一资源。
+3. 为资源应用正确的内容安全策略。
+4. 为资源设置正确的 Accept 请求头。
+
+看一下这个示例：
+```html
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/vue/dist/vue.js" as="script">
+```
+这种做法将把 `<link>` 标签塞入一个预加载器中。
+
+这个预加载器在不阻塞页面 onload 事件的情况下，去加载资源。
+
+我们可以通过以下两个示例来作一个对比：
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script>
+        console.time('load')
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/echarts/2.1.10/chart/bar.js"></script>
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+</head>
+<body>
+<script>
+window.onload = () => {
+    console.timeEnd('load') // load: 1449.759033203125ms
+}
+</script>
+</body>
+</html>
+```
+上面这个示例从加载到触发 onload 事件需要大概 1400 ms 的时间。再看一下使用 preload 预加载的时间：
+```html
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/vue/dist/vue.js" as="script">
+<link rel="preload" href="https://cdn.bootcdn.net/ajax/libs/echarts/2.1.10/chart/bar.js" as="script">
+<link rel="preload" href="https://unpkg.com/element-ui/lib/index.js" as="script">
+<link rel="preload" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css" as="style">
+
+window.onload = () => {
+    console.timeEnd('load') // load: 10.8818359375ms
+}
+```
+用 preload 来加载资源，只需要 10 ms 就触发了 onload 事件。
+
+说明同样是下载文件，使用 preload 不会阻塞 onload 事件。
+
+### prefetch
+`prefetch` 和 `preload` 不同，使用 `prefetch` 属性指定的资源将在浏览器空闲时间下下载。
+
+在资源的请求头如果发现有下面这个属性，就代表它是通过 `prefetch` 加载的：
+```js
+purpose: prefetch
+```
+
+另外，空闲时间是如何确定、如何获取的，目前还没有相关 API。
+
+
+
+## preload 和 defer 的区别
+preload 和 defer 的相同点是异步下载。那它们的不同点是什么呢？
+
+preload 下载的资源只有在遇到同样的 script 标签时，才会执行对应的脚本。例如下面预加载的 `vue.js`：
+```html
+<link rel="preload" as="script" href="https://cdn.jsdelivr.net/npm/vue/dist/vue.js">
+```
+只有在遇到下面的标签时，才会执行加载的 `vue.js`：
+```html
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+```
+
+defer 则是异步下载资源，在所有元素解析完成后，触发 DOMContentLoaded 事件前执行。
+
+
+
+## window.onload 和 DOMContentLoaded 的区别
+当整个页面及所有依赖资源如样式表和图片都已完成加载时，将触发load事件。
+
+它与 DOMContentLoaded不同，当纯HTML被完全加载以及解析时，DOMContentLoaded 事件会被触发，而不必等待样式表，图片或者子框架完成加载。
+
+* [load](https://developer.mozilla.org/zh-CN/docs/Web/Events/load)
+* [DOMContentLoaded 事件](https://developer.mozilla.org/zh-CN/docs/Web/API/Document/DOMContentLoaded_event)
+
+
+## websocket 鉴权、多人连接、心跳机制
+* [WebSocket 的鉴权授权方案](http://www.moye.me/2017/02/10/websocket-authentication-and-authorization/)
+* [WebSocket学习（一）——基于socket.io实现简单多人聊天室](https://segmentfault.com/a/1190000011538416)
+* [理解WebSocket心跳及重连机制（五）](https://www.cnblogs.com/tugenhua0707/p/8648044.html)
+
+
+
+## Object 与 Map 的区别
+1. Object 只能选择字符、数值、符号作为 key，Map 则可以使用任何类型的数据作为 key。
+2. Map 实例会维护键值对的插入顺序，因此可以根据插入顺序执行迭代操作。Chrome Opera 中使用 for-in 语句遍历 Object 属性时会遵循一个规律：它们会先提取所有 key 的 parseFloat 值为非负整数的属性，然后根据数字顺序对属性排序首先遍历出来，然后按照对象定义的顺序遍历余下的所有属性。其它浏览器则完全按照对象定义的顺序遍历属性。
+
+### 选择 Object 还是 Map
+对于多数Web开发任务来说，选择 Object 还是 Map 只是个人偏好问题，影响不大。不过，对于在乎内存和性能的开发者来说，对象和映射之间确实存在显著的差别。
+#### 1. 内存占用
+Object 和 Map 的工程级实现在不同浏览器间存在明显差异，但存储单个键/值对所占用的内存数量都会随键的数量线性增加。批量添加或删除键/值对则取决于各浏览器对该类型内存分配的工程实现。
+
+不同浏览器的情况不同，但给定固定大小的内存， Map 大约可以比 Object 多存储50%的键/值对。
+#### 2. 插入性能
+向 Object 和 Map 中插入新键/值对的消耗大致相当，不过插入Map 在所有浏览器中一般会稍微快一点儿。对这两个类型来说，插入速度并不会随着键/值对数量而线性增加。
+
+如果代码涉及大量插入操作，那么显然 Map 的性能更佳。
+#### 3. 查找速度
+与插入不同，从大型 Object 和 Map 中查找键/值对的性能差异极小，但如果只包含少量键/值对，则 Object 有时候速度更快。在把 Object 当成数组使用的情况下（比如使用连续整数作为属性），浏览器引擎可以进行优化，在内存中使用更高效的布局。
+
+这对 Map 来说是不可能的。对这两个类型而言，查找速度不会随着键/值对数量增加而线性增加。如果代码涉及大量查找操作，那么某些情况下可能选择 Object 更好一些。
+#### 4. 删除性能
+使用 delete 删除 Object 属性的性能一直以来饱受诟病，目前在很多浏览器中仍然如此。为此，出现了一些伪删除对象属性的操作，包括把属性值设置为 undefined 或 null 。但很多时候，这都是一
+种讨厌的或不适宜的折中。
+
+而对大多数浏览器引擎来说， Map 的 delete() 操作都比插入和查找更快。如果代码涉及大量删除操作，那么毫无疑问应该选择 Map 。
+
+参考资料：
+* [JavaScript高级程序设计（第4版）](https://book.douban.com/subject/35175321/?from=tag)
+* [js能够保证object属性的输出顺序吗？](http://jartto.wang/2016/10/25/does-js-guarantee-object-property-order/)
+
+
+## 为什么 WeakMap 和 WeakSet 的键只能使用对象？
+>是为了保证只有通过键对象的引用来取得值。
+```js
+const m = new WeakMap()
+m.set({}, 100) // 由于 {} 没有在其他地方引用，所以在垃圾回收时，这个值也会被回收。
+
+const a = {}
+m.set(a, 100) // 如果使用这种方式，则不会被回收。因为 {} 有 a 变量在引用它。
+
+a = null // 将 a 置为空后，m 里的值 100 在垃圾回收时将会被回收。
+```
+>如果允许原始值，那就没办法区分初始化时使用的字符串字面量和初始化之后使用的一个相等的字符串了。
+
+所以这句话的意思很明确：
+```js
+const a = {} // 在创建对象时，分配了一块内存，并把这块内存的地址传给 a 
+m.set(a, 100) // 执行 set 操作时，实际上是将 a 指向的内存地址和 100 关联起来
+
+const a = 'abc' // 由于基本数据类型在传递时，传递的是值，而不是引用。
+m.set(a, 100) // 所以执行 set 操作时，实际上是将新的 'abc' 和 100 关联起来，而不是原来 a 变量指向的那个。
+	      // 那这样就会有问题，m 里存储的永远是没有被引用的键，随时都会被回收。
+```
+参考资料：
+* [JavaScript高级程序设计（第4版）](https://book.douban.com/subject/35175321/?from=tag)
+
+
+## 实现 async/await
+利用 `generator()` 实现 `async/await` 主要就是用一个函数（自动执行器）来包装 `generator()`，从而实现自动执行 `generator()`。
+
+每次执行 `next()` 返回的 `{ value, done }` 中的 value 是一个 Promise，所以要等它执行完毕后再执行下一次 `next()`。
+
+即在它的后面加一个 `then()` 函数，并且在 `then()` 函数中执行 `next()`。
+```js
+function t(data) {
+    return new Promise(r => setTimeout(() => r(data), 100))
+}
+
+function *test() {
+    const data1 = yield t(1)
+    console.log(data1)
+    const data2 = yield t(2)
+    console.log(data2)
+    return 3
+}
+
+function async(generator) {
+    return new Promise((resolve, reject) => {
+	const gen = generator()
+
+	function step(nextFun) {
+	    // 每一次 next() 都是返回这样的数据 { value: xx, done: false }，结束时 done 为 true
+	    let next
+	    try {
+		// 如果 generator() 执行报错，需要 reject 给外面的 catch 函数
+		next = nextFun()
+	    } catch(e) {
+		return reject(e)
+	    }
+
+	    // done: true 代表 generator() 结束了
+	    if (next.done) {
+		return resolve(next.value)
+	    }
+
+	    Promise.resolve(next.value).then(
+		(val) => step(() => gen.next(val)), // 通过 next(val) 将 val 传给 yield 后面的变量 
+		(err) => step(() => gen.trhow(err)),
+	    )
+	}
+
+	step(() => gen.next())
+    })
+}
+
+// 1 2 3
+async(test).then(val => console.log(val))
+```
+
+
+## 实现发布/订阅模式
+```js
+class Event {
+    constructor() {
+	this.events = {}
+    }
+
+    on(event, callback) {
+	if (!this.events[event]) {
+	    this.events[event] = []
+	}
+
+	this.events[event].push(callback)
+    }
+
+    off(event, callback) {
+	if (this.events[event]) {
+	    if (callback) {
+		const cbs = this.events[event]
+		let l = cbs.length
+		while (l--) {
+		    if (callback == cbs[l]) {
+			cbs.splice(l, 1)
+		    }
+		}
+	    } else {
+		this.events[event] = []
+	    }
+	}
+    }
+
+    emit(event, ...args) {
+	if (this.events[event]) {
+	    for (const func of this.events[event]) {
+		func.call(this, ...args)
+	    }
+	}
+    }
+
+    once(event, callback) {
+	const self = this
+
+	function wrap(...args) {
+	    callback.call(self, ...args)
+	    self.off(event, wrap)
+	}
+
+	this.on(event, wrap)
+    }
+}
+```
+
+
+## 5个fetch请求，请求完成后要求立即执行，但最终的输出顺序要按照要求输出ABCDE
+```js
+function run(fetchs = []) {
+    return new Promise((resolve, reject) => {
+        const result = new Array(fetchs.length).fill(null)
+        fetchs.forEach((fetch, i) => {
+            fetch
+            .then(res => {
+                result[i] = res
+                if (!result.includes(null)) {
+                    resolve(result)
+                }
+            })
+            .catch(err => {
+                reject(err)
+            })
+        })
+    })
+}
+
+function delay(str) {
+    return new Promise(resolve => {
+        setTimeout(() => {
+            resolve(str)
+        }, Math.random() * 1000)
+    })
+}
+
+run([delay('A'), delay('B'), delay('C'), delay('D'), delay('E')]).then(res => {
+    console.log(res) // ["A", "B", "C", "D", "E"]
+})
+```
+
+## requestIdleCallback 是干什么用的
+[你应该知道的requestIdleCallback](https://juejin.cn/post/6844903592831238157)
+
+## js 对象循环引用会导致什么问题
+1. 引用计数无法回收内存
+2. `JSON.stringify()` 执行会报错。
+
+## 如何埋点，为什么用1 * 1像素的gif图片做上报
+1. 能够完成整个 HTTP 请求+响应（尽管不需要响应内容）
+2. 触发 GET 请求之后不需要获取和处理数据、服务器也不需要发送数据
+3. 没有跨域问题
+4. 执行过程无阻塞
+5. 相比 XMLHttpRequest 对象发送 GET 请求，性能上更好
+6. GIF的最低合法体积最小（最小的BMP文件需要74个字节，PNG需要67个字节，而合法的GIF，只需要43个字节）
+
+[为什么通常在发送数据埋点请求的时候使用的是 1x1 像素的透明 gif 图片](https://github.com/Advanced-Frontend/Daily-Interview-Question/issues/87)
+
+
+## Base64图片有什么问题
+1. 使用base64 编码后比原图大
+2. 内联到 HTML/CSS 文件，会造成文件尺寸变大，影响首屏加载。如果用外链图片的话，图片可以在页面渲染完成后继续加载，不会造成阻塞。
+
+## 如何实现一个可设置过期时间的 localStorage
+```js
+(function () {
+    const getItem = localStorage.getItem.bind(localStorage)
+    const setItem = localStorage.setItem.bind(localStorage)
+    const removeItem = localStorage.removeItem.bind(localStorage)
+
+    localStorage.getItem = function (key) {
+        const expires = getItem(key + '_expires')
+        if (expires && new Date() > new Date(Number(expires))) {
+            removeItem(key)
+            removeItem(key + '_expires')
+        }
+
+        return getItem(key)
+    }
+
+    localStorage.setItem = function (key, value, time) {
+        if (typeof time !== 'undefined') {
+            setItem(key + '_expires', new Date().getTime() + Number(time))
+        }
+
+        return setItem(key, value)
+    }
+})()
+```
+
+## JavaScript的sort方法内部使用的什么排序
+sort 使用的是插入排序和快速排序结合的排序算法。
+
+数组长度不超过10时，使用插入排序。长度超过10使用快速排序。在数组较短时插入排序更有效率。
+
+## 服务端渲染和预渲染的区别
+[服务端渲染(SSR)和预渲染(Prerendering)有什么区别？](https://www.zhihu.com/question/273930443)
+
+## canvas 和 svg 区别
+[SVG 与 HTML5 的 canvas 各有什么优点，哪个更有前途？](https://www.zhihu.com/question/19690014)

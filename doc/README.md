@@ -1,24 +1,22 @@
-前端规范目录：
-* [JavaScript 编码规范](js.html)
-* [CSS 编码规范](css.html)
-* [HTML 编码规范](html.html)
-* [Vue 编码规范](vue.html)
-* [Git 规范](git.html)
-* [文件规范](file.html)
-* [规范验证与代码格式化](verify.html)
-* [其他](other.html)
+这是我学习和工作所做的笔记，希望对你有帮助！
 
-### 引用资料
-* [百度 spec](https://github.com/ecomfe/spec)
-* [airbnb-javascript](https://github.com/airbnb/javascript)
-* [<u>airbnb-javascript 中文版</u>]()
-fasdfasdklfjasdflk
-[b]: 
+如果你想看一些更加系统化的知识，可以看一下我的[博客](https://github.com/woai3c/Front-end-articles)，里面都是我写的一系列文章。除此之外，还有一些我学习计算机基础知识做的[笔记和实验](https://github.com/woai3c/Notes-and-Labs)，有兴趣不妨一看。
 
+关注我：
+* [知乎](https://www.zhihu.com/people/tan-guang-zhi-19)
+* [Github](https://github.com/woai3c)
+* [掘金](https://juejin.cn/user/1433418893103645)
+* 公众号——前端编程技术分享
 
-
-> 
->
-
-发送到发送到解放路卡三等奖s
-阿斯顿发斯蒂芬
+## [在线阅读](https://badlym.github.io/articles-front/)
+* JavaScript
+* CSS
+* HTML
+* Vue
+* HTTP
+* Node
+* Webpack
+* 前端安全
+* 其他
+## License
+MIT
