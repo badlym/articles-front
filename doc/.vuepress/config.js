@@ -1,6 +1,6 @@
 module.exports = {
     base: '/articles-front/',
-    title: '前端知识点与面试题',
+    title: '前端相关技术分享以及文档',
     head: [
         ['meta', { name: 'referrer', content: 'no-referrer' }],
     ],
